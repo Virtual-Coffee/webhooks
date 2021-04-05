@@ -40,6 +40,7 @@ const findRoomInstance = async function (base, instanceId) {
 const handler = async function (event, context) {
   try {
     const request = JSON.parse(event.body);
+    console.log(event.headers);
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
     if (
