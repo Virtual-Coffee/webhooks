@@ -39,8 +39,15 @@ const findRoomInstance = async function (base, instanceId) {
 
 const handler = async function (event, context) {
   try {
+    if (event.headers.authorization !== process.env.ZOOM_WEBHOOK_AUTH) {
+      console.log('Unauthorized', event);
+      return {
+        statusCode: 401,
+        body: '',
+      };
+    }
+
     const request = JSON.parse(event.body);
-    console.log(event.headers);
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
     if (
