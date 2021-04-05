@@ -1,0 +1,12 @@
+{
+  "name": "webhooks",
+  "version": "1.0.0",
+  "description": "webhooks for VC",
+  "main": "index.js",
+  "repository": "git@github.com:Virtual-Coffee/webhooks.git",
+  "author": "Dan Ott <dan@dtott.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^8.2.0"
+  }
+}
