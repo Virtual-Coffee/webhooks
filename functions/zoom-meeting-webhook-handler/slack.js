@@ -25,7 +25,7 @@ async function updateMeetingStatus(timestamp) {
           type: 'button',
           text: {
             type: 'plain_text',
-            text: timestamp ? 'Start a New Session' : 'Join Now',
+            text: timestamp ? 'Start a New Session!' : 'Join Now!',
             emoji: true,
           },
           value: 'join_meeting',
