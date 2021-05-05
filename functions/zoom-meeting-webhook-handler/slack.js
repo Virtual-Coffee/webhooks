@@ -8,7 +8,7 @@ const web = new WebClient(process.env.SLACK_BOT_TOKEN);
 
 async function updateMeetingStatus(timestamp) {
   const message = {
-    channel: process.env.COWORKING_SLACK_CHANNEL_ID,
+    channel: process.env.SLACK_COWORKING_CHANNEL_ID,
     text: timestamp
       ? 'The current Co-Working Session has ended.'
       : 'A new Co-Working Session has Started!',
@@ -64,7 +64,7 @@ async function updateMeetingStatus(timestamp) {
     : await web.chat.postMessage(message);
 
   console.log(
-    `Successfully send message ${result.ts} in conversation ${process.env.COWORKING_SLACK_CHANNEL_ID}`
+    `Successfully send message ${result.ts} in conversation ${process.env.SLACK_COWORKING_CHANNEL_ID}`
   );
 
   return result;
@@ -78,11 +78,11 @@ async function updateMeetingAttendence(thread_ts, zoomRequest) {
       zoomRequest.event === 'meeting.participant_joined'
         ? `${username} has joined!`
         : `${username} has left. We'll miss you!`,
-    channel: process.env.COWORKING_SLACK_CHANNEL_ID,
+    channel: process.env.SLACK_COWORKING_CHANNEL_ID,
   });
 
   console.log(
-    `Successfully send message ${result.ts} in conversation ${process.env.COWORKING_SLACK_CHANNEL_ID}`
+    `Successfully send message ${result.ts} in conversation ${process.env.SLACK_COWORKING_CHANNEL_ID}`
   );
 
   return result;

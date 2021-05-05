@@ -20,7 +20,7 @@ const handler = async function (event, context) {
     const request = JSON.parse(event.body);
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
-    if (request.payload.object.id === process.env.COWORKING_ZOOM_MEETING_ID) {
+    if (request.payload.object.id === process.env.ZOOM_COWORKING_MEETING_ID) {
       const Airtable = require('airtable');
       const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE);
 
