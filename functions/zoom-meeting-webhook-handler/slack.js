@@ -41,7 +41,7 @@ async function updateMeetingStatus(timestamp) {
             text: {
               type: 'mrkdwn',
               text:
-                "This is a Zoom link - following it will most likely open Zoom and add you to our Co-Working Room. \n\n Just want to make sure we're all on the same page 😃",
+                "This is a Zoom link - following it will most likely open Zoom and add you to our Co-Working Room. \n\n Additionally, as always, our <https://virtualcoffee.io/code-of-conduct|Code of Conduct> is in effect. \n\n Just want to make sure we're all on the same page 😃",
             },
             confirm: {
               type: 'plain_text',
