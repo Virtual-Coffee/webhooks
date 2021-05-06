@@ -47,10 +47,10 @@ const handler = async function (event, context) {
           break;
 
         case EVENT_MEETING_STARTED:
+          // post message to Slack and get result
           const result = await updateMeetingStatus();
 
           // create new room instance
-          //
           const created = await base('room_instances').create({
             instance_uuid: request.payload.object.uuid,
             slack_thread_timestamp: result.ts,
