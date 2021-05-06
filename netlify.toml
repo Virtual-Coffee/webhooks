@@ -1,2 +1,6 @@
 [build]
   functions = "functions"
+
+[[redirects]]
+  from = "/zoom-meeting-webhook-handler"
+  to = "/.netlify/functions/zoom-meeting-webhook-handler"
