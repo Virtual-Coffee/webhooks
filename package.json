@@ -7,6 +7,7 @@
   "author": "Dan Ott <dan@dtott.com>",
   "license": "MIT",
   "dependencies": {
+    "@slack/web-api": "^6.1.0",
     "airtable": "^0.10.1",
     "dotenv": "^8.2.0"
   }
