@@ -78,13 +78,16 @@ const handler = async function (event, context) {
         switch (request.event.type) {
           case EVENT_MESSAGE:
           case EVENT_TEAM_JOIN:
-            const result = await fetch('/slack-send-message', {
-              method: 'POST',
-              body: JSON.stringify({
-                key: process.env.WEBHOOKS_VERIFICATION,
-                event: request.event,
-              }),
-            });
+            const result = await fetch(
+              `${process.env.DEPLOY_PRIME_URL}/slack-send-message`,
+              {
+                method: 'POST',
+                body: JSON.stringify({
+                  key: process.env.WEBHOOKS_VERIFICATION,
+                  event: request.event,
+                }),
+              }
+            );
 
             console.log(
               `Successfully send message ${result.ts} to user ${request.event.user}`
