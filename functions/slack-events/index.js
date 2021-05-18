@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fetch = require('node-fetch');
 const crypto = require('crypto');
 
 function verify(event) {
