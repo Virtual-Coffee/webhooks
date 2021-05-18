@@ -43,6 +43,7 @@ const EVENT_TEAM_JOIN = 'team_join';
 const EVENT_MESSAGE = 'message';
 
 const handler = async function (event, context) {
+  console.log({ event, context });
   // https://vc-webhooks-335424.netlify.live/.netlify/functions/slack-events
   //   {
   //     "token": "Jhj5dZrVaK7ZwHHjRyZWjbDl",
