@@ -2,7 +2,10 @@ require('dotenv').config();
 const crypto = require('crypto');
 
 function verify(event) {
-  console.log('key', process.env.SLACK_SIGNING_SECRET);
+  console.log({
+    SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET,
+    SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN,
+  });
   const slackSignature = event.headers['x-slack-signature'];
   const timestamp = event.headers['x-slack-request-timestamp'];
   // convert current time from milliseconds to seconds
