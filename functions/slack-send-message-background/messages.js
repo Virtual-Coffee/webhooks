@@ -1,6 +1,7 @@
 exports.welcome = ({ user }) => ({
   link_names: true,
   unfurl_links: false,
+  unfurl_media: false,
   channel: user.id,
   text: `👋 Hey @${user.name}, welcome to Virtual Coffee -- fondly referred to as VC around this space.`,
   blocks: [
