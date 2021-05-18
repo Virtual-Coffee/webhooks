@@ -39,6 +39,7 @@ function verify(event) {
 }
 
 const EVENT_TEAM_JOIN = 'team_join';
+const EVENT_MESSAGE = 'message';
 
 const handler = async function (event, context) {
   // https://vc-webhooks-335424.netlify.live/.netlify/functions/slack-events
@@ -74,6 +75,7 @@ const handler = async function (event, context) {
         // v0
 
         switch (request.event.type) {
+          case EVENT_MESSAGE:
           case EVENT_TEAM_JOIN:
             const result = await fetch('/slack-send-message', {
               method: 'POST',
