@@ -80,7 +80,7 @@ const handler = async function (event, context) {
           case EVENT_MESSAGE:
           case EVENT_TEAM_JOIN:
             const result = await fetch(
-              `${process.env.DEPLOY_PRIME_URL}/slack-send-message`,
+              `${event.headers.host}/slack-send-message`,
               {
                 method: 'POST',
                 body: JSON.stringify({
