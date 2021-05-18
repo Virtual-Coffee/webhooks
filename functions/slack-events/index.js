@@ -85,13 +85,14 @@ const handler = async function (event, context) {
                 method: 'POST',
                 body: JSON.stringify({
                   key: process.env.WEBHOOKS_VERIFICATION,
+                  action: 'greet',
                   event: request.event,
                 }),
               }
             );
 
             console.log(
-              `Successfully send message ${result.ts} to user ${request.event.user}`
+              `Successfully send message to user ${request.event.user}`
             );
 
             return {
