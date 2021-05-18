@@ -57,6 +57,7 @@ const handler = async function (event, context) {
     switch (request.type) {
       case 'url_verification':
         if (request.challenge) {
+          console.log('Valid url_verification');
           return {
             statusCode: 200,
             body: request.challenge,
@@ -68,6 +69,7 @@ const handler = async function (event, context) {
         const isValid = verify(event);
 
         if (!isValid.valid) {
+          console.log('Failed validation: ', isValid.reason);
           return {
             statusCode: 400,
             body: isValid.reason,
@@ -102,6 +104,7 @@ const handler = async function (event, context) {
         break;
     }
 
+    console.log('Unknown action.');
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Unknown action.' }),
