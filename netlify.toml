@@ -10,3 +10,13 @@
   from = "/slack-interactivity"
   to = "/.netlify/functions/slack-interactivity"
   status = 200
+
+[[redirects]]
+  from = "/slack-events"
+  to = "/.netlify/functions/slack-events"
+  status = 200
+
+[[redirects]]
+  from = "/slack-send-message"
+  to = "/.netlify/functions/slack-send-message-background"
+  status = 200

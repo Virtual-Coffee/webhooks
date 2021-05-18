@@ -44,6 +44,8 @@ function verify(event) {
   }
 }
 
+const EVENT_TEAM_JOIN = 'team_join';
+
 const handler = async function (event, context) {
   // https://vc-webhooks-335424.netlify.live/.netlify/functions/slack-events
   //   {
@@ -75,30 +77,41 @@ const handler = async function (event, context) {
         }
         // v0
 
-        const result = await web.chat.postMessage({
-          text: 'Hello!',
-          channel: request.event.user,
-        });
+        switch (request.event.type) {
+          case EVENT_TEAM_JOIN:
+            const result = await fetch('/slack-send-message', {
+              method: 'POST',
+              body: JSON.stringify({
+                key: process.env.WEBHOOKS_VERIFICATION,
+                event: request.event,
+              }),
+            });
 
-        console.log(
-          `Successfully send message ${result.ts} to user ${request.event.user}`
-        );
+            console.log(
+              `Successfully send message ${result.ts} to user ${request.event.user}`
+            );
 
-        return {
-          statusCode: 200,
-          body: '',
-        };
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: true }),
+            };
+
+          default:
+            break;
+        }
 
       default:
-        return {
-          statusCode: 200,
-          body: '',
-        };
+        break;
     }
+
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Unknown action.' }),
+    };
   } catch (error) {
     console.log(error);
     return {
-      statusCode: 200,
+      statusCode: 500,
       body: '',
     };
   }
