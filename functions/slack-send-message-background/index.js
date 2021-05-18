@@ -6,7 +6,7 @@ const web = new WebClient(process.env.TEST_SLACK_BOT_TOKEN);
 const handler = async function (event, context) {
   const request = JSON.parse(event.body);
 
-  console.log();
+  console.log({ event, request });
 
   if (request.key !== process.env.WEBHOOKS_VERIFICATION) {
     console.log('Not Authorized');
