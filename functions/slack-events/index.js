@@ -1,12 +1,6 @@
 require('dotenv').config();
 const crypto = require('crypto');
 
-const { WebClient } = require('@slack/web-api');
-// const web = new WebClient(process.env.SLACK_BOT_TOKEN);
-const web = new WebClient(
-  'xoxb-2058222876048-2047060586769-vbavfhv9iv0pYfyW93rfhnfX'
-);
-
 function verify(event) {
   const slackSignature = event.headers['x-slack-signature'];
   const timestamp = event.headers['x-slack-request-timestamp'];
