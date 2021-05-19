@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const { WebClient } = require('@slack/web-api');
-const web = new WebClient(process.env.TEST_SLACK_BOT_TOKEN);
+const web = new WebClient(process.env.SLACK_BOT_TOKEN);
 
 const handler = async function (event, context) {
   const request = JSON.parse(event.body);

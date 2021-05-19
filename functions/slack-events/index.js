@@ -18,7 +18,7 @@ function verify(event) {
   const mySignature =
     'v0=' +
     crypto
-      .createHmac('sha256', process.env.TEST_SLACK_SIGNING_SECRET)
+      .createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
       .update(verificationString, 'utf8')
       .digest('hex');
 
