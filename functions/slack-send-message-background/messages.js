@@ -13,13 +13,34 @@ exports.welcome = ({ user }) => ({
       },
     },
     {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: ' ',
+      },
+    },
+    {
       type: 'divider',
     },
     {
       type: 'section',
       text: {
         type: 'mrkdwn',
+        text: ' ',
+      },
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
         text: "❤️ Before doing anything else, please first take a moment to read our <https://virtualcoffee.io/code-of-conduct|Code of Conduct>. Our Code of Conduct is in effect at any Virtual Coffee function, including direct messages. If you have experienced or witnessed violations to Virtual Coffee's Code of Conduct, please use our <https://virtualcoffee.io/report-coc-violation/|Code of Conduct Violation Form> to let us know.",
+      },
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: ' ',
       },
     },
     {
@@ -76,7 +97,21 @@ exports.welcome = ({ user }) => ({
       },
     },
     {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: ' ',
+      },
+    },
+    {
       type: 'divider',
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: ' ',
+      },
     },
     {
       type: 'section',
