@@ -40,7 +40,6 @@ function verify(event) {
 }
 
 const EVENT_TEAM_JOIN = 'team_join';
-const EVENT_MESSAGE = 'message';
 
 const handler = async function (event, context) {
   // console.log({ event, context });
@@ -77,16 +76,17 @@ const handler = async function (event, context) {
         // v0
 
         switch (request.event.type) {
-          case EVENT_MESSAGE:
           case EVENT_TEAM_JOIN:
+            const { welcome } = require('./messages');
+
             const result = await fetch(
               `https://${event.headers.host}/slack-send-message`,
               {
                 method: 'POST',
                 body: JSON.stringify({
                   key: process.env.WEBHOOKS_VERIFICATION,
-                  action: 'greet',
-                  event: request.event,
+                  action: 'sendMessage',
+                  message: welcome({ user: request.event.user }),
                 }),
               }
             );
