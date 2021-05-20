@@ -11,4 +11,15 @@ async function updateMessage(message) {
   return await web.chat.update(message);
 }
 
-module.exports({ postMessage, updateMessage });
+async function postBackgroundMessage({ host, message }) {
+  await fetch(`${host}/slack-send-message`, {
+    method: 'POST',
+    body: JSON.stringify({
+      key: process.env.WEBHOOKS_VERIFICATION,
+      action: 'sendMessage',
+      message,
+    }),
+  });
+}
+
+module.exports({ postMessage, updateMessage, postBackgroundMessage });
