@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { sendMessage, updateMessage } = require('../../util/slack');
+const { postMessage, updateMessage } = require('../../util/slack');
 
 // timestamp: if we have a timestamp, that means we've ended the meeting and are trying to update the message
 // otherwise, post a new message
@@ -57,7 +57,7 @@ async function updateMeetingStatus(timestamp) {
 
   const result = timestamp
     ? await updateMessage({ ...message, ts: timestamp })
-    : await sendMessage(message);
+    : await postMessage(message);
 
   console.log(
     `Successfully send message ${result.ts} in conversation ${process.env.SLACK_COWORKING_CHANNEL_ID}`
@@ -68,7 +68,7 @@ async function updateMeetingStatus(timestamp) {
 
 async function updateMeetingAttendence(thread_ts, zoomRequest) {
   const username = zoomRequest.payload.object.participant.user_name;
-  const result = await sendMessage({
+  const result = await postMessage({
     thread_ts,
     text:
       zoomRequest.event === 'meeting.participant_joined'
