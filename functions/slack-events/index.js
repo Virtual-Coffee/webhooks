@@ -2,6 +2,8 @@ require('dotenv').config();
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 
+const { postBackgroundMessage } = require('../../util/slack');
+
 function verify(event) {
   const slackSignature = event.headers['x-slack-signature'];
   const timestamp = event.headers['x-slack-request-timestamp'];
@@ -40,6 +42,7 @@ function verify(event) {
 }
 
 const EVENT_TEAM_JOIN = 'team_join';
+const EVENT_APP_HOME_OPENED = 'app_home_opened';
 
 const handler = async function (event, context) {
   // console.log({ event, context });
@@ -79,17 +82,28 @@ const handler = async function (event, context) {
           case EVENT_TEAM_JOIN:
             const { welcome } = require('./messages');
 
-            const result = await fetch(
-              `https://${event.headers.host}/slack-send-message`,
-              {
-                method: 'POST',
-                body: JSON.stringify({
-                  key: process.env.WEBHOOKS_VERIFICATION,
-                  action: 'sendMessage',
-                  message: welcome({ user: request.event.user }),
-                }),
-              }
+            const result = await postBackgroundMessage({
+              host: `https://${event.headers.host}`,
+
+              message: welcome({ event: request.event }),
+            });
+
+            console.log(
+              `Successfully send message to user ${request.event.user}`
             );
+
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ success: true }),
+            };
+
+          case EVENT_APP_HOME_OPENED:
+            const { appHome } = require('./messages');
+            const result = await postBackgroundMessage({
+              host: `https://${event.headers.host}`,
+
+              message: appHome({ event: request.event }),
+            });
 
             console.log(
               `Successfully send message to user ${request.event.user}`
