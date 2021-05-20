@@ -31,7 +31,9 @@ const handler = async function (event, context) {
       result = await publishView(request.message);
 
       if (result.ok) {
-        console.log(`Successfully published view`);
+        console.log(
+          `Successfully published view to ${request.message.user_id}`
+        );
       } else {
         console.log('Error publishing view:');
         console.log(result);
