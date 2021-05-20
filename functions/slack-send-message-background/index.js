@@ -32,6 +32,7 @@ const handler = async function (event, context) {
 
       if (result.ok) {
         console.log(`Successfully published view`);
+        console.log(result);
       } else {
         console.log('Error publishing view:');
         console.log(result);
