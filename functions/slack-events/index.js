@@ -1,6 +1,7 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
 const crypto = require('crypto');
+const messages = require('./messages');
 
 const { postBackgroundMessage } = require('../../util/slack');
 
@@ -80,12 +81,9 @@ const handler = async function (event, context) {
 
         switch (request.event.type) {
           case EVENT_TEAM_JOIN:
-            const { welcome } = require('./messages');
-
-            const result = await postBackgroundMessage({
+            await postBackgroundMessage({
               host: `https://${event.headers.host}`,
-
-              message: welcome({ event: request.event }),
+              message: messages.welcome({ event: request.event }),
             });
 
             console.log(
@@ -98,11 +96,9 @@ const handler = async function (event, context) {
             };
 
           case EVENT_APP_HOME_OPENED:
-            const { appHome } = require('./messages');
-            const result = await postBackgroundMessage({
+            await postBackgroundMessage({
               host: `https://${event.headers.host}`,
-
-              message: appHome({ event: request.event }),
+              message: messages.appHome({ event: request.event }),
             });
 
             console.log(
