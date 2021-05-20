@@ -1,6 +1,9 @@
 require('dotenv').config();
-const fetch = require('node-fetch');
+
 const crypto = require('crypto');
+const messages = require('./messages');
+
+const { postMessage, publishView } = require('../../util/slack');
 
 function verify(event) {
   const slackSignature = event.headers['x-slack-signature'];
@@ -40,19 +43,12 @@ function verify(event) {
 }
 
 const EVENT_TEAM_JOIN = 'team_join';
-const EVENT_MESSAGE = 'message';
+const EVENT_APP_HOME_OPENED = 'app_home_opened';
 
 const handler = async function (event, context) {
-  // console.log({ event, context });
-  // https://vc-webhooks-335424.netlify.live/.netlify/functions/slack-events
-  //   {
-  //     "token": "Jhj5dZrVaK7ZwHHjRyZWjbDl",
-  //     "challenge": "3eZbrw1aBm2rZgRNFdxV2595E9CY3gmdALWMmHkvFXO7tYXAYM8P",
-  //     "type": "url_verification"
-  // }
   try {
     const request = JSON.parse(event.body);
-    console.log(request);
+
     switch (request.type) {
       case 'url_verification':
         if (request.challenge) {
@@ -76,32 +72,54 @@ const handler = async function (event, context) {
         }
         // v0
 
+        let result = null;
+
         switch (request.event.type) {
-          case EVENT_MESSAGE:
           case EVENT_TEAM_JOIN:
-            const result = await fetch(
-              `https://${event.headers.host}/slack-send-message`,
+            console.log('Posting to slack-background for team join');
+
+            result = await postMessage(
+              messages.welcome({ event: request.event }),
               {
-                method: 'POST',
-                body: JSON.stringify({
-                  key: process.env.WEBHOOKS_VERIFICATION,
-                  action: 'greet',
-                  event: request.event,
-                }),
+                background: true,
               }
             );
 
-            console.log(
-              `Successfully send message to user ${request.event.user}`
+            break;
+
+          case EVENT_APP_HOME_OPENED:
+            console.log('Posting to slack-background for app home');
+
+            result = await publishView(
+              messages.appHome({ event: request.event }),
+              {
+                background: true,
+              }
             );
+            break;
+
+          default:
+            break;
+        }
+
+        if (result) {
+          if (result.ok) {
+            console.log(`Successfully posted to slack-background`);
 
             return {
               statusCode: 200,
               body: JSON.stringify({ success: true }),
             };
+          } else {
+            console.log(`Error posting to slack-background`);
 
-          default:
-            break;
+            console.log(result);
+
+            return {
+              statusCode: 400,
+              body: JSON.stringify({ success: false }),
+            };
+          }
         }
 
       default:

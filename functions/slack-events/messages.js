@@ -1,15 +1,12 @@
-exports.welcome = ({ user }) => ({
-  link_names: true,
-  unfurl_links: false,
-  unfurl_media: false,
-  channel: user.id,
-  text: `:wave: Hey @${user.name}, welcome to Virtual Coffee -- fondly referred to as VC around this space.`,
-  blocks: [
+function getWelcomeBlocks(user) {
+  return [
     {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `:wave: Hey @${user.name}, welcome to Virtual Coffee -- fondly referred to as VC around this space.`,
+        text: `:wave: Hey ${
+          user ? `@${user.name}` : `there`
+        }, welcome to Virtual Coffee -- fondly referred to as VC around this space.`,
       },
     },
     {
@@ -120,5 +117,31 @@ exports.welcome = ({ user }) => ({
         text: ":heart: And remember, you can always message one of our community maintainers, @rhawrot, @dan, @thesaramccombs, or @tkshillingford for any help and support you may need. \n\n *We're happy to have you here!*",
       },
     },
-  ],
-});
+  ];
+}
+
+function appHome({ event }) {
+  return {
+    user_id: event.user,
+    view: {
+      type: 'home',
+      blocks: getWelcomeBlocks(),
+    },
+  };
+}
+
+function welcome({ event }) {
+  return {
+    link_names: true,
+    unfurl_links: false,
+    unfurl_media: false,
+    channel: event.user.id,
+    text: `:wave: Hey @${event.user.name}, welcome to Virtual Coffee -- fondly referred to as VC around this space.`,
+    blocks: getWelcomeBlocks(event.user),
+  };
+}
+
+module.exports = {
+  welcome,
+  appHome,
+};

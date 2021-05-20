@@ -1,38 +1,52 @@
 require('dotenv').config();
 
-const { WebClient } = require('@slack/web-api');
-const web = new WebClient(process.env.SLACK_BOT_TOKEN);
+const { postMessage, publishView } = require('../../util/slack');
 
 const handler = async function (event, context) {
   const request = JSON.parse(event.body);
-
-  console.log({ event, request });
 
   if (request.key !== process.env.WEBHOOKS_VERIFICATION) {
     console.log('Not Authorized');
     throw new Error('Not Authorized');
   }
 
+  let result;
+
   switch (request.action) {
-    case 'greet':
-      // welcome
-      const { welcome } = require('./messages');
+    case 'postMessage':
+      result = await postMessage(request.message);
 
-      const result = await web.chat.postMessage(
-        welcome({ user: request.event.user })
-      );
+      if (result.ok) {
+        console.log(
+          `Successfully posted message ${result.ts} to user ${
+            result.message && result.message.username
+          }`
+        );
+      } else {
+        console.log('Error posting message:');
+        console.log(result);
+      }
 
-      console.log(
-        `Successfully send message ${result.ts} to user ${request.event.user}`
-      );
+      break;
+
+    case 'publishView':
+      result = await publishView(request.message);
+
+      if (result.ok) {
+        console.log(
+          `Successfully published view to ${request.message.user_id}`
+        );
+      } else {
+        console.log('Error publishing view:');
+        console.log(result);
+      }
 
       break;
 
     default:
+      console.log('No action');
       break;
   }
-
-  console.log('No action');
 
   // return {
   //   statusCode: 200,

@@ -1,7 +1,6 @@
 require('dotenv').config();
 
-const { WebClient } = require('@slack/web-api');
-const web = new WebClient(process.env.SLACK_BOT_TOKEN);
+const { sendMessage, updateMessage } = require('../../util/slack');
 
 // timestamp: if we have a timestamp, that means we've ended the meeting and are trying to update the message
 // otherwise, post a new message
@@ -30,8 +29,7 @@ async function updateMeetingStatus(timestamp) {
             emoji: true,
           },
           value: 'join_meeting',
-          url:
-            'https://us02web.zoom.us/j/81323022832?pwd=Rm1PcG13RTBrMlMzQi8yaXVlc3hmdz09',
+          url: 'https://us02web.zoom.us/j/81323022832?pwd=Rm1PcG13RTBrMlMzQi8yaXVlc3hmdz09',
           action_id: 'button-action',
           style: 'primary',
           confirm: {
@@ -41,8 +39,7 @@ async function updateMeetingStatus(timestamp) {
             },
             text: {
               type: 'mrkdwn',
-              text:
-                "This is a Zoom link - following it will most likely open Zoom and add you to our Co-Working Room. \n\n Additionally, as always, our <https://virtualcoffee.io/code-of-conduct|Code of Conduct> is in effect. \n\n Just want to make sure we're all on the same page 😃",
+              text: "This is a Zoom link - following it will most likely open Zoom and add you to our Co-Working Room. \n\n Additionally, as always, our <https://virtualcoffee.io/code-of-conduct|Code of Conduct> is in effect. \n\n Just want to make sure we're all on the same page 😃",
             },
             confirm: {
               type: 'plain_text',
@@ -59,8 +56,8 @@ async function updateMeetingStatus(timestamp) {
   };
 
   const result = timestamp
-    ? await web.chat.update({ ...message, ts: timestamp })
-    : await web.chat.postMessage(message);
+    ? await updateMessage({ ...message, ts: timestamp })
+    : await sendMessage(message);
 
   console.log(
     `Successfully send message ${result.ts} in conversation ${process.env.SLACK_COWORKING_CHANNEL_ID}`
@@ -71,7 +68,7 @@ async function updateMeetingStatus(timestamp) {
 
 async function updateMeetingAttendence(thread_ts, zoomRequest) {
   const username = zoomRequest.payload.object.participant.user_name;
-  const result = await web.chat.postMessage({
+  const result = await sendMessage({
     thread_ts,
     text:
       zoomRequest.event === 'meeting.participant_joined'
