@@ -18,7 +18,9 @@ const handler = async function (event, context) {
 
       if (result.ok) {
         console.log(
-          `Successfully posted message ${result.ts} to user ${result?.message?.username}`
+          `Successfully posted message ${result.ts} to user ${
+            result.message && result.message.username
+          }`
         );
       } else {
         console.log('Error posting message:');
