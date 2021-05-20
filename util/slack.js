@@ -22,4 +22,4 @@ async function postBackgroundMessage({ host, message }) {
   });
 }
 
-module.exports({ postMessage, updateMessage, postBackgroundMessage });
+module.exports = { postMessage, updateMessage, postBackgroundMessage };
