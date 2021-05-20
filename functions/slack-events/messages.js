@@ -135,7 +135,7 @@ function welcome({ event }) {
     link_names: true,
     unfurl_links: false,
     unfurl_media: false,
-    channel: user.id,
+    channel: event.user.id,
     text: `:wave: Hey @${event.user.name}, welcome to Virtual Coffee -- fondly referred to as VC around this space.`,
     blocks: getWelcomeBlocks(event.user),
   };
