@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { sendMessage } = require('../../util/slack');
+const { postMessage, publishView } = require('../../util/slack');
 
 const handler = async function (event, context) {
   const request = JSON.parse(event.body);
@@ -10,21 +10,39 @@ const handler = async function (event, context) {
     throw new Error('Not Authorized');
   }
 
-  switch (request.action) {
-    case 'sendMessage':
-      const result = await sendMessage(request.message);
+  let result;
 
-      console.log(
-        `Successfully send message ${result.ts} to user ${request.event.user}`
-      );
+  switch (request.action) {
+    case 'postMessage':
+      result = await postMessage(request.message);
+
+      if (result.ok) {
+        console.log(
+          `Successfully posted message ${result.ts} to user ${request.event.user}`
+        );
+      } else {
+        console.log('Error posting message:');
+        console.log(result);
+      }
+
+      break;
+
+    case 'publishView':
+      result = await publishView(request.message);
+
+      if (result.ok) {
+        console.log(`Successfully published view`);
+      } else {
+        console.log('Error publishing view:');
+        console.log(result);
+      }
 
       break;
 
     default:
+      console.log('No action');
       break;
   }
-
-  console.log('No action');
 
   // return {
   //   statusCode: 200,
