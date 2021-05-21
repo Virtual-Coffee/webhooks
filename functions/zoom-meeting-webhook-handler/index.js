@@ -19,6 +19,8 @@ const handler = async function (event, context) {
 
     const request = JSON.parse(event.body);
 
+    console.log(request);
+
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
     if (request.payload.object.id === process.env.ZOOM_COWORKING_MEETING_ID) {
       const Airtable = require('airtable');
@@ -98,6 +100,8 @@ const handler = async function (event, context) {
           break;
       }
     }
+
+    console.log('meeting ID is not co-working meeting');
 
     return {
       statusCode: 200,

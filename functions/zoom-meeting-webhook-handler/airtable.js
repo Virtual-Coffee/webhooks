@@ -26,11 +26,15 @@ async function findRoomInstance(base, instanceId) {
     roomInstance = await tryFind();
   }
 
-  console.log(
-    'room instance: ',
-    roomInstance.get('instance_uuid'),
-    roomInstance.get('slack_thread_timestamp')
-  );
+  if (roomInstance) {
+    console.log(
+      'room instance: ',
+      roomInstance.get('instance_uuid'),
+      roomInstance.get('slack_thread_timestamp')
+    );
+  } else {
+    console.log(`room instance ${instanceId} not found`);
+  }
 
   return roomInstance;
 }
