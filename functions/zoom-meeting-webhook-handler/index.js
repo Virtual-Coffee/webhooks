@@ -99,9 +99,9 @@ const handler = async function (event, context) {
         default:
           break;
       }
+    } else {
+      console.log('meeting ID is not co-working meeting');
     }
-
-    console.log('meeting ID is not co-working meeting');
 
     return {
       statusCode: 200,
