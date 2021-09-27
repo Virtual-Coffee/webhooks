@@ -5,6 +5,9 @@ const messages = require('./messages');
 
 const { postMessage, publishView } = require('../../util/slack');
 
+const SLACK_SIGNING_SECRET =
+  process.env.TEST_SLACK_SIGNING_SECRET || process.env.SLACK_SIGNING_SECRET;
+
 function verify(event) {
   const slackSignature = event.headers['x-slack-signature'];
   const timestamp = event.headers['x-slack-request-timestamp'];
@@ -21,7 +24,7 @@ function verify(event) {
   const mySignature =
     'v0=' +
     crypto
-      .createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
+      .createHmac('sha256', SLACK_SIGNING_SECRET)
       .update(verificationString, 'utf8')
       .digest('hex');
 

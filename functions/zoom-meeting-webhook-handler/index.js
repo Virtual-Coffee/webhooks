@@ -9,13 +9,12 @@ const EVENT_MEETING_ENDED = 'meeting.ended';
 const EVENT_PARTICIPANT_JOINED = 'meeting.participant_joined';
 const EVENT_PARTICIPANT_LEFT = 'meeting.participant_left';
 
+const ZOOM_AUTH =
+  process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
+
 const handler = async function (event, context) {
   try {
-    if (event.headers.authorization !== process.env.ZOOM_WEBHOOK_AUTH) {
-      console.log({
-        e: event.headers.authorization,
-        env: process.env.ZOOM_WEBHOOK_AUTH,
-      });
+    if (event.headers.authorization !== ZOOM_AUTH) {
       console.log('Unauthorized', event);
       return {
         statusCode: 401,
