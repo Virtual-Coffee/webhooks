@@ -70,6 +70,7 @@ const handler = async function (event, context) {
             instance_uuid: request.payload.object.uuid,
             slack_thread_timestamp: result.ts,
             start_time: request.payload.object.start_time,
+            room_record: [room.record_id],
           });
 
           if (!created) {

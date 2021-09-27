@@ -8,7 +8,10 @@ async function main() {
   console.log('Building rooms');
   const results = await base('rooms').select().all();
 
-  const rooms = results.map((record) => record.fields);
+  const rooms = results.map((record) => ({
+    ...record.fields,
+    record_id: record.id,
+  }));
 
   fs.writeFileSync(
     path.resolve(__dirname, '..', 'data', 'rooms.json'),
