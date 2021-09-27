@@ -11,5 +11,8 @@
     "airtable": "^0.10.1",
     "dotenv": "^8.2.0",
     "node-fetch": "^2.6.1"
+  },
+  "scripts": {
+    "build": "node scripts/build.js"
   }
 }
