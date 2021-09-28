@@ -22,7 +22,7 @@ async function findRoomInstance(base, instanceId) {
   while (count < 5 && !roomInstance) {
     console.log('trying again');
     count++;
-    await sleep(1000);
+    await sleep(1000 * count);
     roomInstance = await tryFind();
   }
 
