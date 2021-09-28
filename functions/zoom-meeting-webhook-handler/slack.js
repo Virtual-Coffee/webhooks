@@ -8,13 +8,15 @@ const { postMessage, updateMessage } = require('../../util/slack');
 async function updateMeetingStatus(room, timestamp) {
   const message = {
     channel: room.SlackChannelId,
-    text: timestamp ? room.SessionEnded : room.SessionStarted,
+    text: timestamp ? room.MessageSessionEnded : room.MessageSessionStarted,
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: timestamp ? room.SessionEnded : room.SessionStarted,
+          text: timestamp
+            ? room.MessageSessionEnded
+            : room.MessageSessionStarted,
         },
         accessory: {
           type: 'button',
@@ -63,7 +65,7 @@ async function updateMeetingStatus(room, timestamp) {
     ],
   };
 
-  console.log(message);
+  console.log(JSON.stringify(message));
 
   const result = timestamp
     ? await updateMessage({ ...message, ts: timestamp })
