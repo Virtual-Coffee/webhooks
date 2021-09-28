@@ -45,6 +45,7 @@ const handler = async function (event, context) {
         case EVENT_PARTICIPANT_JOINED:
         case EVENT_PARTICIPANT_LEFT:
           let roomInstance = await findRoomInstance(
+            room,
             base,
             request.payload.object.uuid
           );
@@ -86,6 +87,7 @@ const handler = async function (event, context) {
 
         case EVENT_MEETING_ENDED:
           let roomInstanceEnd = await findRoomInstance(
+            room,
             base,
             request.payload.object.uuid
           );

@@ -1,13 +1,13 @@
 // returns a roomInstance record, or undefined.
 // Will retry 5 times, pausing 1 second between tries.
-async function findRoomInstance(base, instanceId) {
+async function findRoomInstance(room, base, instanceId) {
   async function tryFind() {
     const resultArray = await base('room_instances')
       .select({
         // Selecting the first 1 records in Grid view:
         maxRecords: 1,
         view: 'Grid view',
-        filterByFormula: `instance_uuid='${instanceId}'`,
+        filterByFormula: `AND(RoomZoomMeetingId='${room.ZoomMeetingId}',instance_uuid='${instanceId}')`,
       })
       .firstPage();
 
