@@ -31,6 +31,9 @@ const handler = async function (event, context) {
     const room = rooms.find(
       (room) => room.ZoomMeetingId === request.payload.object.id
     );
+    console.log('request');
+    console.log(request.payload.object);
+    console.log(room);
 
     if (room) {
       const Airtable = require('airtable');
