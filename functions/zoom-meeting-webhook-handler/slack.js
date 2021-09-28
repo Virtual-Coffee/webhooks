@@ -9,6 +9,8 @@ async function updateMeetingStatus(room, timestamp) {
   const message = {
     channel: room.SlackChannelId,
     text: timestamp ? room.MessageSessionEnded : room.MessageSessionStarted,
+    unfurl_links: false,
+    unfurl_media: false,
     blocks: [
       {
         type: 'section',
