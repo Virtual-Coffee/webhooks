@@ -1,10 +1,15 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
 const { WebClient } = require('@slack/web-api');
-const web = new WebClient(process.env.SLACK_BOT_TOKEN);
+
+const SLACK_BOT_TOKEN =
+  process.env.TEST_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
+const APP_HOST = process.env.TEST_APP_HOST || process.env.APP_HOST;
+
+const web = new WebClient(SLACK_BOT_TOKEN);
 
 async function postBackgroundAction(json = {}) {
-  return await fetch(`${process.env.APP_HOST}/slack-send-message`, {
+  return await fetch(`${APP_HOST}/slack-send-message`, {
     method: 'POST',
     body: JSON.stringify({
       key: process.env.WEBHOOKS_VERIFICATION,

@@ -2,14 +2,19 @@ require('dotenv').config();
 
 const { updateMeetingStatus, updateMeetingAttendence } = require('./slack');
 
+const rooms = require('../../data/rooms.json');
+
 const EVENT_MEETING_STARTED = 'meeting.started';
 const EVENT_MEETING_ENDED = 'meeting.ended';
 const EVENT_PARTICIPANT_JOINED = 'meeting.participant_joined';
 const EVENT_PARTICIPANT_LEFT = 'meeting.participant_left';
 
+const ZOOM_AUTH =
+  process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
+
 const handler = async function (event, context) {
   try {
-    if (event.headers.authorization !== process.env.ZOOM_WEBHOOK_AUTH) {
+    if (event.headers.authorization !== ZOOM_AUTH) {
       console.log('Unauthorized', event);
       return {
         statusCode: 401,
@@ -22,7 +27,15 @@ const handler = async function (event, context) {
     console.log(request);
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
-    if (request.payload.object.id === process.env.ZOOM_COWORKING_MEETING_ID) {
+
+    const room = rooms.find(
+      (room) => room.ZoomMeetingId === request.payload.object.id
+    );
+    console.log('request');
+    console.log(request.payload.object);
+    console.log(room);
+
+    if (room) {
       const Airtable = require('airtable');
       const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE);
 
@@ -32,6 +45,7 @@ const handler = async function (event, context) {
         case EVENT_PARTICIPANT_JOINED:
         case EVENT_PARTICIPANT_LEFT:
           let roomInstance = await findRoomInstance(
+            room,
             base,
             request.payload.object.uuid
           );
@@ -41,6 +55,7 @@ const handler = async function (event, context) {
             console.log(`found room instance ${roomInstance.getId()}`);
 
             const updatedMeeting = await updateMeetingAttendence(
+              room,
               roomInstance.get('slack_thread_timestamp'),
               request
             );
@@ -50,13 +65,16 @@ const handler = async function (event, context) {
 
         case EVENT_MEETING_STARTED:
           // post message to Slack and get result
-          const result = await updateMeetingStatus();
+          console.log('posting update');
+          const result = await updateMeetingStatus(room);
+          console.log('done posting update');
 
           // create new room instance
           const created = await base('room_instances').create({
             instance_uuid: request.payload.object.uuid,
             slack_thread_timestamp: result.ts,
             start_time: request.payload.object.start_time,
+            room_record: [room.record_id],
           });
 
           if (!created) {
@@ -69,12 +87,14 @@ const handler = async function (event, context) {
 
         case EVENT_MEETING_ENDED:
           let roomInstanceEnd = await findRoomInstance(
+            room,
             base,
             request.payload.object.uuid
           );
 
           if (roomInstanceEnd) {
             const slackedEnd = await updateMeetingStatus(
+              room,
               roomInstanceEnd.get('slack_thread_timestamp')
             );
 
