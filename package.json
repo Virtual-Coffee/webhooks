@@ -10,7 +10,11 @@
     "@slack/web-api": "^6.1.0",
     "airtable": "^0.10.1",
     "dotenv": "^8.2.0",
-    "node-fetch": "^2.6.1"
+    "graphql": "^16.3.0",
+    "graphql-request": "^4.0.0",
+    "luxon": "^2.3.1",
+    "node-fetch": "^2.6.1",
+    "slackify-html": "^1.0.1"
   },
   "scripts": {
     "build": "node scripts/build.js"
