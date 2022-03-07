@@ -282,85 +282,85 @@ const handler = async function (event, context) {
             ],
           };
 
-          // const hourlyAdminMessage = {
-          //   channel: SLACK_EVENT_ADMIN_CHANNEL,
-          //   text: `Starting soon: ${eventsList
-          //     .map((event) => {
-          //       return `${event.title}: ${DateTime.fromISO(
-          //         event.startDateLocalized
-          //       ).toFormat('EEEE, fff')}`;
-          //     })
-          //     .join(', ')}`,
-          //   unfurl_links: false,
-          //   unfurl_media: false,
-          //   blocks: [
-          //     {
-          //       type: 'header',
-          //       text: {
-          //         type: 'plain_text',
-          //         text: '⏰ Starting Soon:',
-          //         emoji: true,
-          //       },
-          //     },
-          //     ...eventsList.reduce((list, event) => {
-          //       const eventDate = DateTime.fromISO(event.startDateLocalized);
+          const hourlyAdminMessage = {
+            channel: SLACK_EVENT_ADMIN_CHANNEL,
+            text: `Starting soon: ${eventsList
+              .map((event) => {
+                return `${event.title}: ${DateTime.fromISO(
+                  event.startDateLocalized
+                ).toFormat('EEEE, fff')}`;
+              })
+              .join(', ')}`,
+            unfurl_links: false,
+            unfurl_media: false,
+            blocks: [
+              {
+                type: 'header',
+                text: {
+                  type: 'plain_text',
+                  text: '⏰ Starting Soon:',
+                  emoji: true,
+                },
+              },
+              ...eventsList.reduce((list, event) => {
+                const eventDate = DateTime.fromISO(event.startDateLocalized);
 
-          //       const titleBlock = {
-          //         type: 'section',
-          //         text: {
-          //           type: 'mrkdwn',
-          //           text: `*${
-          //             event.title
-          //           }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-          //             'EEEE, fff'
-          //           )}>`,
-          //         },
-          //       };
+                const titleBlock = {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `*${
+                      event.title
+                    }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                      'EEEE, fff'
+                    )}>`,
+                  },
+                };
 
-          //       if (
-          //         event.eventJoinLink &&
-          //         event.eventJoinLink.substring(0, 4) === 'http'
-          //       ) {
-          //         titleBlock.accessory = {
-          //           type: 'button',
-          //           text: {
-          //             type: 'plain_text',
-          //             text: 'Join Event',
-          //             emoji: true,
-          //           },
-          //           value: `join_event_${event.id}`,
-          //           url: event.eventJoinLink,
-          //           action_id: 'button-join-event',
-          //         };
-          //       }
+                if (
+                  event.eventJoinLink &&
+                  event.eventJoinLink.substring(0, 4) === 'http'
+                ) {
+                  titleBlock.accessory = {
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Join Event',
+                      emoji: true,
+                    },
+                    value: `join_event_${event.id}`,
+                    url: event.eventJoinLink,
+                    action_id: 'button-join-event',
+                  };
+                }
 
-          //       return [
-          //         ...list,
-          //         titleBlock,
-          //         {
-          //           type: 'section',
-          //           text: {
-          //             type: 'mrkdwn',
-          //             text: `*Location:* ${event.eventJoinLink}`,
-          //           },
-          //         },
-          //         ...(event.eventZoomHostCode
-          //           ? [
-          //               {
-          //                 type: 'section',
-          //                 text: {
-          //                   type: 'mrkdwn',
-          //                   text: `*Host Code:* ${event.eventZoomHostCode}`,
-          //                 },
-          //               },
-          //             ]
-          //           : []),
-          //       ];
-          //     }, []),
-          //   ],
-          // };
+                return [
+                  ...list,
+                  titleBlock,
+                  {
+                    type: 'section',
+                    text: {
+                      type: 'mrkdwn',
+                      text: `*Location:* ${event.eventJoinLink}`,
+                    },
+                  },
+                  ...(event.eventZoomHostCode
+                    ? [
+                        {
+                          type: 'section',
+                          text: {
+                            type: 'mrkdwn',
+                            text: `*Host Code:* ${event.eventZoomHostCode}`,
+                          },
+                        },
+                      ]
+                    : []),
+                ];
+              }, []),
+            ],
+          };
 
-          // await postMessage(hourlyAdminMessage);
+          await postMessage(hourlyAdminMessage);
           await postMessage(hourlyMessage);
           console.log(JSON.stringify(hourlyMessage, null, 2));
           break;
