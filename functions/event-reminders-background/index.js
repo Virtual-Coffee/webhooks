@@ -59,8 +59,9 @@ const handler = async function (event, context) {
   // types = weekly, daily, hourly
   const reminderType = event.queryStringParameters.type;
 
-  const rangeStart = DateTime.now().toISO();
+  const rangeStart = DateTime.now().setZone('America/New_York').toISO();
   const rangeEnd = DateTime.now()
+    .setZone('America/New_York')
     .plus(
       reminderType === 'weekly'
         ? { weeks: 1 }
