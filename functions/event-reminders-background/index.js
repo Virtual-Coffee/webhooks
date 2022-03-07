@@ -133,6 +133,12 @@ const handler = async function (event, context) {
           break;
 
         case 'daily':
+          const dayCheck = new Date();
+          if (dayCheck.getDay() === 1) {
+            // don't run this one on monday, since the weekly one runs on monday
+            return;
+          }
+
           const dailyMessage = {
             channel: SLACK_ANNOUNCEMENTS_CHANNEL,
             text: `Today's events are: ${eventsList
