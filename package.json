@@ -6,6 +6,9 @@
   "repository": "git@github.com:Virtual-Coffee/webhooks.git",
   "author": "Dan Ott <dan@dtott.com>",
   "license": "MIT",
+  "engines": {
+    "node": "^14.18"
+  },
   "dependencies": {
     "@slack/web-api": "^6.1.0",
     "airtable": "^0.10.1",
