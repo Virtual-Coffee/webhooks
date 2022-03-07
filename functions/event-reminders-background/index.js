@@ -54,8 +54,6 @@ const handler = async function (event, context) {
     },
   });
 
-  console.log('Fetching events');
-
   // types = weekly, daily, hourly
   const reminderType = event.queryStringParameters.type;
 
@@ -70,6 +68,8 @@ const handler = async function (event, context) {
         : { hours: 1 }
     )
     .toISO();
+
+  console.log('Fetching events', rangeStart, rangeEnd);
 
   try {
     const calendarsResponse = await graphQLClient.request(calendarsQuery);
