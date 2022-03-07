@@ -21,3 +21,8 @@
   from = "/slack-send-message"
   to = "/.netlify/functions/slack-send-message-background"
   status = 200
+
+[[redirects]]
+  from = "/event-reminders"
+  to = "/.netlify/functions/event-reminders-background"
+  status = 200
