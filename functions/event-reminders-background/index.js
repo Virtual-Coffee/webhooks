@@ -26,7 +26,7 @@ function createEventsQuery(calendars) {
   return gql`
 	query getEvents($rangeStart: String!, $rangeEnd: String!) {
 		solspace_calendar {
-			events(rangeStart: $rangeStart, rangeEnd: $rangeEnd) {
+			events(rangeStart: $rangeStart, rangeEnd: $rangeEnd, startsAfter: $rangeStart) {
 				id
 				title
 				startDateLocalized
@@ -73,6 +73,7 @@ const handler = async function (event, context) {
 
   try {
     const calendarsResponse = await graphQLClient.request(calendarsQuery);
+
     const eventsResponse = await graphQLClient.request(
       createEventsQuery(calendarsResponse),
       {
@@ -248,7 +249,7 @@ const handler = async function (event, context) {
                   };
                 }
 
-                console.log(event.eventCalendarDescription);
+                // console.log(event.eventCalendarDescription);
 
                 return [
                   ...list,
@@ -362,7 +363,7 @@ const handler = async function (event, context) {
 
           await postMessage(hourlyAdminMessage);
           await postMessage(hourlyMessage);
-          console.log(JSON.stringify(hourlyMessage, null, 2));
+          // console.log(JSON.stringify(hourlyMessage, null, 2));
           break;
 
         default:
