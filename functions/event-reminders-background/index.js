@@ -212,176 +212,179 @@ const handler = async function (event, context) {
           const filteredList = eventsList.filter((event) => {
             return now < DateTime.fromISO(event.startDateLocalized);
           });
-          const hourlyMessage = {
-            channel: SLACK_ANNOUNCEMENTS_CHANNEL,
-            text: `Starting soon: ${filteredList
-              .map((event) => {
-                return `${event.title}: ${DateTime.fromISO(
-                  event.startDateLocalized
-                ).toFormat('EEEE, fff')}`;
-              })
-              .join(', ')}`,
-            unfurl_links: false,
-            unfurl_media: false,
-            blocks: [
-              {
-                type: 'header',
-                text: {
-                  type: 'plain_text',
-                  text: '⏰ Starting Soon:',
-                  emoji: true,
-                },
-              },
-              ...filteredList.reduce((list, event) => {
-                const eventDate = DateTime.fromISO(event.startDateLocalized);
 
-                const titleBlock = {
-                  type: 'section',
+          if (filteredList.length) {
+            const hourlyMessage = {
+              channel: SLACK_ANNOUNCEMENTS_CHANNEL,
+              text: `Starting soon: ${filteredList
+                .map((event) => {
+                  return `${event.title}: ${DateTime.fromISO(
+                    event.startDateLocalized
+                  ).toFormat('EEEE, fff')}`;
+                })
+                .join(', ')}`,
+              unfurl_links: false,
+              unfurl_media: false,
+              blocks: [
+                {
+                  type: 'header',
                   text: {
-                    type: 'mrkdwn',
-                    text: `*${
-                      event.title
-                    }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                      'EEEE, fff'
-                    )}>`,
+                    type: 'plain_text',
+                    text: '⏰ Starting Soon:',
+                    emoji: true,
                   },
-                };
-
-                if (
-                  event.eventJoinLink &&
-                  event.eventJoinLink.substring(0, 4) === 'http'
-                ) {
-                  titleBlock.accessory = {
-                    type: 'button',
-                    text: {
-                      type: 'plain_text',
-                      text: 'Join Event',
-                      emoji: true,
-                    },
-                    value: `join_event_${event.id}`,
-                    url: event.eventJoinLink,
-                    action_id: 'button-join-event',
-                  };
-                }
-
-                // console.log(event.eventCalendarDescription);
-
-                return [
-                  ...list,
-                  titleBlock,
-                  ...(event.eventJoinLink &&
-                  event.eventJoinLink.substring(0, 4) !== 'http'
-                    ? [
-                        {
-                          type: 'section',
-                          text: {
-                            type: 'mrkdwn',
-                            text: `*Location:* ${event.eventJoinLink}`,
-                          },
-                        },
-                      ]
-                    : []),
-                  {
-                    type: 'context',
-                    elements: [
-                      {
-                        type: 'mrkdwn',
-                        text: slackify(event.eventCalendarDescription),
-                      },
-                    ],
-                  },
-                  {
-                    type: 'divider',
-                  },
-                ];
-              }, []),
-            ],
-          };
-
-          const hourlyAdminMessage = {
-            channel: SLACK_EVENT_ADMIN_CHANNEL,
-            text: `Starting soon: ${filteredList
-              .map((event) => {
-                return `${event.title}: ${DateTime.fromISO(
-                  event.startDateLocalized
-                ).toFormat('EEEE, fff')}`;
-              })
-              .join(', ')}`,
-            unfurl_links: false,
-            unfurl_media: false,
-            blocks: [
-              {
-                type: 'header',
-                text: {
-                  type: 'plain_text',
-                  text: '⏰ Starting Soon:',
-                  emoji: true,
                 },
-              },
-              ...filteredList.reduce((list, event) => {
-                const eventDate = DateTime.fromISO(event.startDateLocalized);
+                ...filteredList.reduce((list, event) => {
+                  const eventDate = DateTime.fromISO(event.startDateLocalized);
 
-                const titleBlock = {
-                  type: 'section',
-                  text: {
-                    type: 'mrkdwn',
-                    text: `*${
-                      event.title
-                    }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                      'EEEE, fff'
-                    )}>`,
-                  },
-                };
-
-                if (
-                  event.eventJoinLink &&
-                  event.eventJoinLink.substring(0, 4) === 'http'
-                ) {
-                  titleBlock.accessory = {
-                    type: 'button',
-                    text: {
-                      type: 'plain_text',
-                      text: 'Join Event',
-                      emoji: true,
-                    },
-                    value: `join_event_${event.id}`,
-                    url: event.eventJoinLink,
-                    action_id: 'button-join-event',
-                  };
-                }
-
-                return [
-                  ...list,
-                  titleBlock,
-                  {
+                  const titleBlock = {
                     type: 'section',
                     text: {
                       type: 'mrkdwn',
-                      text: `*Location:* ${event.eventJoinLink}`,
+                      text: `*${
+                        event.title
+                      }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                        'EEEE, fff'
+                      )}>`,
                     },
-                  },
-                  ...(event.eventZoomHostCode
-                    ? [
-                        {
-                          type: 'section',
-                          text: {
-                            type: 'mrkdwn',
-                            text: `*Host Code:* ${event.eventZoomHostCode}`,
-                          },
-                        },
-                      ]
-                    : []),
-                  {
-                    type: 'divider',
-                  },
-                ];
-              }, []),
-            ],
-          };
+                  };
 
-          await postMessage(hourlyAdminMessage);
-          await postMessage(hourlyMessage);
-          // console.log(JSON.stringify(hourlyMessage, null, 2));
+                  if (
+                    event.eventJoinLink &&
+                    event.eventJoinLink.substring(0, 4) === 'http'
+                  ) {
+                    titleBlock.accessory = {
+                      type: 'button',
+                      text: {
+                        type: 'plain_text',
+                        text: 'Join Event',
+                        emoji: true,
+                      },
+                      value: `join_event_${event.id}`,
+                      url: event.eventJoinLink,
+                      action_id: 'button-join-event',
+                    };
+                  }
+
+                  // console.log(event.eventCalendarDescription);
+
+                  return [
+                    ...list,
+                    titleBlock,
+                    ...(event.eventJoinLink &&
+                    event.eventJoinLink.substring(0, 4) !== 'http'
+                      ? [
+                          {
+                            type: 'section',
+                            text: {
+                              type: 'mrkdwn',
+                              text: `*Location:* ${event.eventJoinLink}`,
+                            },
+                          },
+                        ]
+                      : []),
+                    {
+                      type: 'context',
+                      elements: [
+                        {
+                          type: 'mrkdwn',
+                          text: slackify(event.eventCalendarDescription),
+                        },
+                      ],
+                    },
+                    {
+                      type: 'divider',
+                    },
+                  ];
+                }, []),
+              ],
+            };
+
+            const hourlyAdminMessage = {
+              channel: SLACK_EVENT_ADMIN_CHANNEL,
+              text: `Starting soon: ${filteredList
+                .map((event) => {
+                  return `${event.title}: ${DateTime.fromISO(
+                    event.startDateLocalized
+                  ).toFormat('EEEE, fff')}`;
+                })
+                .join(', ')}`,
+              unfurl_links: false,
+              unfurl_media: false,
+              blocks: [
+                {
+                  type: 'header',
+                  text: {
+                    type: 'plain_text',
+                    text: '⏰ Starting Soon:',
+                    emoji: true,
+                  },
+                },
+                ...filteredList.reduce((list, event) => {
+                  const eventDate = DateTime.fromISO(event.startDateLocalized);
+
+                  const titleBlock = {
+                    type: 'section',
+                    text: {
+                      type: 'mrkdwn',
+                      text: `*${
+                        event.title
+                      }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                        'EEEE, fff'
+                      )}>`,
+                    },
+                  };
+
+                  if (
+                    event.eventJoinLink &&
+                    event.eventJoinLink.substring(0, 4) === 'http'
+                  ) {
+                    titleBlock.accessory = {
+                      type: 'button',
+                      text: {
+                        type: 'plain_text',
+                        text: 'Join Event',
+                        emoji: true,
+                      },
+                      value: `join_event_${event.id}`,
+                      url: event.eventJoinLink,
+                      action_id: 'button-join-event',
+                    };
+                  }
+
+                  return [
+                    ...list,
+                    titleBlock,
+                    {
+                      type: 'section',
+                      text: {
+                        type: 'mrkdwn',
+                        text: `*Location:* ${event.eventJoinLink}`,
+                      },
+                    },
+                    ...(event.eventZoomHostCode
+                      ? [
+                          {
+                            type: 'section',
+                            text: {
+                              type: 'mrkdwn',
+                              text: `*Host Code:* ${event.eventZoomHostCode}`,
+                            },
+                          },
+                        ]
+                      : []),
+                    {
+                      type: 'divider',
+                    },
+                  ];
+                }, []),
+              ],
+            };
+
+            await postMessage(hourlyAdminMessage);
+            await postMessage(hourlyMessage);
+            // console.log(JSON.stringify(hourlyMessage, null, 2));
+          }
           break;
 
         default:
