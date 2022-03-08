@@ -26,7 +26,7 @@ function createEventsQuery(calendars) {
   return gql`
 	query getEvents($rangeStart: String!, $rangeEnd: String!) {
 		solspace_calendar {
-			events(rangeStart: $rangeStart, rangeEnd: $rangeEnd, startsAfter: $rangeStart) {
+			events(rangeStart: $rangeStart, rangeEnd: $rangeEnd) {
 				id
 				title
 				startDateLocalized
