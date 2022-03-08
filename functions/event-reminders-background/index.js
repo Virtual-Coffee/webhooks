@@ -57,7 +57,10 @@ const handler = async function (event, context) {
   // types = weekly, daily, hourly
   const reminderType = event.queryStringParameters.type;
 
-  const rangeStart = DateTime.now().setZone('America/New_York').toISO();
+  const rangeStart = DateTime.now()
+    .setZone('America/New_York')
+    .set(reminderType === 'daily' ? {} : { hour: 0 })
+    .toISO();
   const rangeEnd = DateTime.now()
     .setZone('America/New_York')
     .plus(
@@ -195,11 +198,23 @@ const handler = async function (event, context) {
 
           await postMessage(dailyMessage);
           break;
-
+        // case 'hourly':
+        //   // filter out past events
+        //   const xnow = DateTime.now();
+        //   const xfilteredList = eventsList.filter((event) => {
+        //     return xnow < DateTime.fromISO(event.startDateLocalized);
+        //   });
+        //   console.log(xfilteredList);
+        //   break;
         case 'hourly':
+          // filter out past events
+          const now = DateTime.now();
+          const filteredList = eventsList.filter((event) => {
+            return now < DateTime.fromISO(event.startDateLocalized);
+          });
           const hourlyMessage = {
             channel: SLACK_ANNOUNCEMENTS_CHANNEL,
-            text: `Starting soon: ${eventsList
+            text: `Starting soon: ${filteredList
               .map((event) => {
                 return `${event.title}: ${DateTime.fromISO(
                   event.startDateLocalized
@@ -217,7 +232,7 @@ const handler = async function (event, context) {
                   emoji: true,
                 },
               },
-              ...eventsList.reduce((list, event) => {
+              ...filteredList.reduce((list, event) => {
                 const eventDate = DateTime.fromISO(event.startDateLocalized);
 
                 const titleBlock = {
@@ -285,7 +300,7 @@ const handler = async function (event, context) {
 
           const hourlyAdminMessage = {
             channel: SLACK_EVENT_ADMIN_CHANNEL,
-            text: `Starting soon: ${eventsList
+            text: `Starting soon: ${filteredList
               .map((event) => {
                 return `${event.title}: ${DateTime.fromISO(
                   event.startDateLocalized
@@ -303,7 +318,7 @@ const handler = async function (event, context) {
                   emoji: true,
                 },
               },
-              ...eventsList.reduce((list, event) => {
+              ...filteredList.reduce((list, event) => {
                 const eventDate = DateTime.fromISO(event.startDateLocalized);
 
                 const titleBlock = {
@@ -356,6 +371,9 @@ const handler = async function (event, context) {
                         },
                       ]
                     : []),
+                  {
+                    type: 'divider',
+                  },
                 ];
               }, []),
             ],
