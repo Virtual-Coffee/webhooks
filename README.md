@@ -2,7 +2,15 @@
 
 Repo/Netlify Functions for responding to various webhooks
 
-## `/slack-send-message-background`
+## `/event-reminders`
+
+A [Netlify background function](https://docs.netlify.com/functions/build-with-javascript/#background-function-format) for sending event reminders to our Slack via cronjob.
+
+- Cron Jobs are set up on [cron-job.org](https://cron-job.org)
+- The Netlify function makes a GraphQL request to our CMS to get upcoming events - `weekly`, `daily`, and `hourly`
+- Then we filter the events and post to Slack using Slack's [Block Kit](https://app.slack.com/block-kit-builder)
+
+## `/slack-send-message`
 
 A [Netlify background function](https://docs.netlify.com/functions/build-with-javascript/#background-function-format) for sending messages to Slack via the [Slack Web API](https://api.slack.com/web).
 
