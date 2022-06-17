@@ -75,7 +75,11 @@ const handler = async function (event, context) {
   console.log('Fetching events', rangeStart, rangeEnd);
 
   try {
+    console.log('fetching calendar');
     const calendarsResponse = await graphQLClient.request(calendarsQuery);
+
+    console.log('making event query');
+    console.log(createEventsQuery(calendarsResponse));
 
     const eventsResponse = await graphQLClient.request(
       createEventsQuery(calendarsResponse),
@@ -84,6 +88,8 @@ const handler = async function (event, context) {
         rangeEnd,
       }
     );
+
+    console.log('parsing event');
 
     const eventsList = eventsResponse.solspace_calendar.events;
     if (eventsList && eventsList.length) {
@@ -134,10 +140,13 @@ const handler = async function (event, context) {
             ],
           };
 
+          console.log(JSON.stringify(weeklyMessage, null, 2));
+
           await postMessage(weeklyMessage);
           break;
 
         case 'daily':
+          console.log('creating daily message');
           const dayCheck = new Date();
           if (dayCheck.getDay() === 1) {
             // don't run this one on monday, since the weekly one runs on monday
@@ -196,7 +205,11 @@ const handler = async function (event, context) {
             ],
           };
 
+          console.log(dailyMessage);
+
           await postMessage(dailyMessage);
+
+          console.log('done posting message');
           break;
         // case 'hourly':
         //   // filter out past events
@@ -383,7 +396,7 @@ const handler = async function (event, context) {
 
             await postMessage(hourlyAdminMessage);
             await postMessage(hourlyMessage);
-            // console.log(JSON.stringify(hourlyMessage, null, 2));
+            console.log(JSON.stringify(hourlyMessage, null, 2));
           }
           break;
 
