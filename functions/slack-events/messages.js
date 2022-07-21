@@ -62,7 +62,7 @@ function getWelcomeBlocks(user) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: ':white_check_mark: Head over to #welcome and introduce yourself to the rest of the group!',
+        text: `:white_check_mark: Head over to #welcome and introduce yourself to the rest of the group! Let us know what you like to do in your freetime, what you're doing in tech, and a random fact about your life!`,
       },
     },
     {
@@ -114,7 +114,7 @@ function getWelcomeBlocks(user) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: ":heart: And remember, you can always message one of our community maintainers, @rhawrot, @dan, @thesaramccombs, or @tkshillingford for any help and support you may need. \n\n *We're happy to have you here!*",
+        text: ":heart: And remember, you can always message one of our community maintainers, @rhawrot, @dan, or @tkshillingford for any help and support you may need. \n\n *We're happy to have you here!*",
       },
     },
   ];
