@@ -10,12 +10,13 @@
     "node": "^14.18"
   },
   "dependencies": {
-    "@slack/web-api": "^6.1.0",
-    "airtable": "^0.10.1",
-    "dotenv": "^8.2.0",
-    "graphql": "^16.3.0",
-    "graphql-request": "^4.0.0",
-    "luxon": "^2.3.1",
+    "@netlify/functions": "^1.2.0",
+    "@slack/web-api": "^6.7.2",
+    "airtable": "^0.11.4",
+    "dotenv": "^16.0.2",
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.0.0",
+    "luxon": "^3.0.3",
     "node-fetch": "^2.6.1",
     "slackify-html": "^1.0.1"
   },
