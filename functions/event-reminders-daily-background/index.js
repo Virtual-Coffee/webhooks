@@ -127,6 +127,15 @@ const handler = async function (event, context) {
               },
             ];
           }, []),
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: `ℹ️ Links to join events will be posted here about 10 minutes before the event starts.`,
+              },
+            ],
+          },
         ],
       };
 

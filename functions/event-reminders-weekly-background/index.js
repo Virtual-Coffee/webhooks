@@ -112,6 +112,18 @@ const handler = async function (event, context) {
             elements: [
               {
                 type: 'mrkdwn',
+                text: `ℹ️ Links to join events will be posted here about 10 minutes before the event starts.`,
+              },
+            ],
+          },
+          {
+            type: 'divider',
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
                 text: `See details and more events at <https://virtualcoffee.io/events|VirtualCoffee.IO>!`,
               },
             ],
