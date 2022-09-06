@@ -139,4 +139,4 @@ const handler = async function (event, context) {
   }
 };
 
-module.exports.handler = schedule('0 8 * * 1', handler);
+module.exports.handler = schedule('0 12 * * 1', handler);
