@@ -258,9 +258,14 @@ const handler = async function (event, context) {
         // console.log(JSON.stringify(hourlyMessage, null, 2));
       }
     }
+    return {
+      statusCode: 200,
+    };
   } catch (e) {
     console.error(e);
-    return [];
+    return {
+      statusCode: 500,
+    };
   }
 };
 

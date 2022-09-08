@@ -141,9 +141,15 @@ const handler = async function (event, context) {
 
       await postMessage(dailyMessage);
     }
+
+    return {
+      statusCode: 200,
+    };
   } catch (e) {
     console.error(e);
-    return [];
+    return {
+      statusCode: 500,
+    };
   }
 };
 
