@@ -114,7 +114,7 @@ function getWelcomeBlocks(user) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: ":heart: And remember, you can always message one of our community maintainers, @rhawrot, @dan, or @tkshillingford for any help and support you may need. \n\n *We're happy to have you here!*",
+        text: ":heart: And remember, you can always message one of our community maintainers, @BekahHW, @Dan Ott, or @Kirk for any help and support you may need. \n\n *We're happy to have you here!*",
       },
     },
   ];
