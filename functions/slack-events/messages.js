@@ -110,11 +110,16 @@ function getWelcomeBlocks(user) {
         text: ' ',
       },
     },
+    // Member ids (use ids in case username changes):
+    // - Julia: U01JXQGMSUC
+    // - Kirk: U01577R42TS
+    // - Bekah: U014HT3RNCU
+    // - Dan: U0157K5MUPJ
     {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: ":heart: And remember, you can always message one of our community maintainers, @BekahHW, @Dan Ott, or @Kirk for any help and support you may need. \n\n *We're happy to have you here!*",
+        text: ":heart: And remember, you can always message one of our community maintainers, <@U014HT3RNCU>, <@U0157K5MUPJ>, <@U01577R42TS>, or <@U01JXQGMSUC> for any help and support you may need. \n\n *We're happy to have you here!*",
       },
     },
   ];
