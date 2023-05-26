@@ -35,6 +35,7 @@ function createEventsQuery(calendars) {
 					eventCalendarDescription
 					eventJoinLink
 					eventZoomHostCode
+          eventSlackAnnouncementsChannelId
 					id
 				}
 				`
@@ -96,35 +97,31 @@ const handler = async function (event, context) {
               emoji: true,
             },
           },
-          ...eventsList.reduce((event, list) => {
+          ...eventsList.map((event) => {
             const eventDate = DateTime.fromISO(event.startDateLocalized);
             // TODO - colate these by date
-            return [
-              ...list,
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: `*<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                    'EEEE, fff'
-                  )}>*\n${event.title}`,
-                },
+            return {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                  'EEEE, fff'
+                )}>* in <#${
+                  event.eventSlackAnnouncementsChannelId ||
+                  DEFAULT_SLACK_EVENT_CHANNEL
+                }>\n${event.title}`,
               },
+            };
+          }),
+          {
+            type: 'context',
+            elements: [
               {
-                type: 'context',
-                elements: [
-                  {
-                    type: 'mrkdwn',
-                    text: `Link to join will be posted in <#${
-                      event.eventSlackAnnouncementsChannelId ||
-                      DEFAULT_SLACK_EVENT_CHANNEL
-                    }> about 10 minutes before the event starts.`,
-                  },
-                ],
+                type: 'mrkdwn',
+                text: `ℹ️ Links to join will be posted in the specified channel about 10 minutes before the event starts.`,
               },
-            ];
-          }, []),
-
+            ],
+          },
           {
             type: 'divider',
           },
