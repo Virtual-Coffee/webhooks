@@ -8,6 +8,8 @@ const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
   process.env.SLACK_ANNOUNCEMENTS_CHANNEL;
 
+const DEFAULT_SLACK_EVENT_CHANNEL = 'C017WAKN883';
+
 const calendarsQuery = gql`
   query getCalendars {
     solspace_calendar {
@@ -94,28 +96,35 @@ const handler = async function (event, context) {
               emoji: true,
             },
           },
-          ...eventsList.map((event) => {
+          ...eventsList.reduce((event, list) => {
             const eventDate = DateTime.fromISO(event.startDateLocalized);
             // TODO - colate these by date
-            return {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                  'EEEE, fff'
-                )}>*\n${event.title}`,
-              },
-            };
-          }),
-          {
-            type: 'context',
-            elements: [
+            return [
+              ...list,
               {
-                type: 'mrkdwn',
-                text: `ℹ️ Links to join events will be posted here about 10 minutes before the event starts.`,
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                    'EEEE, fff'
+                  )}>*\n${event.title}`,
+                },
               },
-            ],
-          },
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: `Link to join will be posted in <#${
+                      event.eventSlackAnnouncementsChannelId ||
+                      DEFAULT_SLACK_EVENT_CHANNEL
+                    }> about 10 minutes before the event starts.`,
+                  },
+                ],
+              },
+            ];
+          }, []),
+
           {
             type: 'divider',
           },

@@ -13,6 +13,8 @@ const SLACK_EVENT_ADMIN_CHANNEL =
   process.env.TEST_SLACK_EVENT_ADMIN_CHANNEL ||
   process.env.SLACK_EVENT_ADMIN_CHANNEL;
 
+const DEFAULT_SLACK_EVENT_CHANNEL = 'C017WAKN883';
+
 const calendarsQuery = gql`
   query getCalendars {
     solspace_calendar {
@@ -39,6 +41,7 @@ function createEventsQuery(calendars) {
 					eventJoinLink
 					eventZoomHostCode
 					id
+          eventSlackAnnouncementsChannelId
 				}
 				`
         )}
@@ -86,91 +89,91 @@ const handler = async function (event, context) {
       });
 
       if (filteredList.length) {
-        const hourlyMessage = {
-          channel: SLACK_ANNOUNCEMENTS_CHANNEL,
-          text: `Starting soon: ${filteredList
-            .map((event) => {
-              return `${event.title}: ${DateTime.fromISO(
-                event.startDateLocalized
-              ).toFormat('EEEE, fff')}`;
-            })
-            .join(', ')}`,
-          unfurl_links: false,
-          unfurl_media: false,
-          blocks: [
-            {
-              type: 'header',
+        const hourlyMessages = filteredList.map((event) => {
+          const eventDate = DateTime.fromISO(event.startDateLocalized);
+
+          const message = {
+            channel:
+              event.eventSlackAnnouncementsChannelId ||
+              DEFAULT_SLACK_EVENT_CHANNEL,
+            text: `Starting soon: ${event.title}: ${eventDate.toFormat(
+              'EEEE, fff'
+            )}`,
+            unfurl_links: false,
+            unfurl_media: false,
+            blocks: [
+              {
+                type: 'header',
+                text: {
+                  type: 'plain_text',
+                  text: '⏰ Starting Soon:',
+                  emoji: true,
+                },
+              },
+            ],
+          };
+
+          const titleBlock = {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*${
+                event.title
+              }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                'EEEE, fff'
+              )}>`,
+            },
+          };
+
+          if (
+            event.eventJoinLink &&
+            event.eventJoinLink.substring(0, 4) === 'http'
+          ) {
+            titleBlock.accessory = {
+              type: 'button',
               text: {
                 type: 'plain_text',
-                text: '⏰ Starting Soon:',
+                text: 'Join Event',
                 emoji: true,
               },
-            },
-            ...filteredList.reduce((list, event) => {
-              const eventDate = DateTime.fromISO(event.startDateLocalized);
+              value: `join_event_${event.id}`,
+              url: event.eventJoinLink,
+              action_id: 'button-join-event',
+            };
+          }
 
-              const titleBlock = {
-                type: 'section',
-                text: {
+          message.blocks.push(titleBlock);
+
+          if (
+            event.eventJoinLink &&
+            event.eventJoinLink.substring(0, 4) !== 'http'
+          ) {
+            message.blocks.push({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*Location:* ${event.eventJoinLink}`,
+              },
+            });
+          }
+
+          message.blocks.push(
+            {
+              type: 'context',
+              elements: [
+                {
                   type: 'mrkdwn',
-                  text: `*${
-                    event.title
-                  }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                    'EEEE, fff'
-                  )}>`,
+                  text: slackify(event.eventCalendarDescription),
                 },
-              };
+              ],
+            },
+            {
+              type: 'divider',
+            }
+          );
 
-              if (
-                event.eventJoinLink &&
-                event.eventJoinLink.substring(0, 4) === 'http'
-              ) {
-                titleBlock.accessory = {
-                  type: 'button',
-                  text: {
-                    type: 'plain_text',
-                    text: 'Join Event',
-                    emoji: true,
-                  },
-                  value: `join_event_${event.id}`,
-                  url: event.eventJoinLink,
-                  action_id: 'button-join-event',
-                };
-              }
-
-              // console.log(event.eventCalendarDescription);
-
-              return [
-                ...list,
-                titleBlock,
-                ...(event.eventJoinLink &&
-                event.eventJoinLink.substring(0, 4) !== 'http'
-                  ? [
-                      {
-                        type: 'section',
-                        text: {
-                          type: 'mrkdwn',
-                          text: `*Location:* ${event.eventJoinLink}`,
-                        },
-                      },
-                    ]
-                  : []),
-                {
-                  type: 'context',
-                  elements: [
-                    {
-                      type: 'mrkdwn',
-                      text: slackify(event.eventCalendarDescription),
-                    },
-                  ],
-                },
-                {
-                  type: 'divider',
-                },
-              ];
-            }, []),
-          ],
-        };
+          return message;
+        });
 
         const hourlyAdminMessage = {
           channel: SLACK_EVENT_ADMIN_CHANNEL,
@@ -246,6 +249,16 @@ const handler = async function (event, context) {
                     ]
                   : []),
                 {
+                  type: 'section',
+                  text: {
+                    type: 'mrkdwn',
+                    text: `*Announcement posted to:* <#${
+                      event.eventSlackAnnouncementsChannelId ||
+                      DEFAULT_SLACK_EVENT_CHANNEL
+                    }>`,
+                  },
+                },
+                {
                   type: 'divider',
                 },
               ];
@@ -254,7 +267,10 @@ const handler = async function (event, context) {
         };
 
         await postMessage(hourlyAdminMessage);
-        await postMessage(hourlyMessage);
+
+        await Promise.all(
+          hourlyMessages.map((message) => postMessage(message))
+        );
         // console.log(JSON.stringify(hourlyMessage, null, 2));
       }
     }
