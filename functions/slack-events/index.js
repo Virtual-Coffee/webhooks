@@ -3,10 +3,18 @@ require('dotenv').config();
 const crypto = require('crypto');
 const messages = require('./messages');
 
-const { postMessage, publishView } = require('../../util/slack');
+const {
+  postMessage,
+  publishView,
+  addMemberToChannel,
+} = require('../../util/slack');
 
 const SLACK_SIGNING_SECRET =
   process.env.TEST_SLACK_SIGNING_SECRET || process.env.SLACK_SIGNING_SECRET;
+
+const SLACK_NEW_MEMBERS_CHANNEL =
+  process.env.TEST_SLACK_NEW_MEMBERS_CHANNEL ||
+  process.env.SLACK_NEW_MEMBERS_CHANNEL;
 
 function verify(event) {
   const slackSignature = event.headers['x-slack-signature'];
@@ -87,6 +95,24 @@ const handler = async function (event, context) {
                 background: true,
               }
             );
+
+            // add user to new members channel
+            if (result.ok) {
+              console.log(JSON.stringify(request.event.user, null, 2));
+              result = await addMemberToChannel(
+                SLACK_NEW_MEMBERS_CHANNEL,
+                request.event.user.id
+              );
+            }
+
+            if (result.ok) {
+              result = await postMessage(
+                messages.newMember({ event: request.event }),
+                {
+                  background: true,
+                }
+              );
+            }
 
             break;
 

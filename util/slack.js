@@ -45,4 +45,16 @@ async function publishView(message, { background = false } = {}) {
     : await web.views.publish(message);
 }
 
-module.exports = { postMessage, updateMessage, publishView };
+async function addMemberToChannel(channelId, userIds) {
+  return await web.conversations.invite({
+    channel: channelId,
+    users: userIds,
+  });
+}
+
+module.exports = {
+  postMessage,
+  updateMessage,
+  publishView,
+  addMemberToChannel,
+};
