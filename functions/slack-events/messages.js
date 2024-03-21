@@ -115,11 +115,12 @@ function getWelcomeBlocks(user) {
     // - Kirk: U01577R42TS
     // - Bekah: U014HT3RNCU
     // - Dan: U0157K5MUPJ
+    // - Meg: U01B9NQF2PR
     {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: ":heart: And remember, you can always message one of our community maintainers, <@U014HT3RNCU>, <@U0157K5MUPJ>, <@U01577R42TS>, or <@U01JXQGMSUC> for any help and support you may need. \n\n *We're happy to have you here!*",
+        text: ":heart: And remember, you can always message one of our community maintainers, <@U014HT3RNCU>, <@U0157K5MUPJ>, <@U01577R42TS>, <@U01JXQGMSUC>, or <@U01B9NQF2PR> for any help and support you may need. \n\n *We're happy to have you here!*",
       },
     },
   ];
