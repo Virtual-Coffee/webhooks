@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+const crypto = require('crypto');
+
 const { updateMeetingStatus, updateMeetingAttendence } = require('./slack');
 
 const rooms = require('../../data/rooms.json');
@@ -11,6 +13,10 @@ const EVENT_PARTICIPANT_LEFT = 'meeting.participant_left';
 
 const ZOOM_AUTH =
   process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
+
+const ZOOM_SECRET =
+  process.env.TEST_ZOOM_WEBHOOK_SECRET_TOKEN ||
+  process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
 
 const handler = async function (event, context) {
   try {
@@ -28,6 +34,22 @@ const handler = async function (event, context) {
     }
 
     const request = JSON.parse(event.body);
+
+    console.log(request);
+
+    if (request.event == 'endpoint.url_validation') {
+      const hashForValidate = crypto
+        .createHmac('sha256', ZOOM_SECRET)
+        .update(request.payload.plainToken)
+        .digest('hex');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          plainToken: request.payload.plainToken,
+          encryptedToken: hashForValidate,
+        }),
+      };
+    }
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
 
