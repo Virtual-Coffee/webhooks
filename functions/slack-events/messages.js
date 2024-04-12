@@ -90,7 +90,7 @@ function getWelcomeBlocks(user) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: ":pencil: We have three private channels — Senior+, Mid-level, Early-career — for peer-to-peer conversation to support and nurture conversations specific to your career level. If you’d like join one, then reach out to Meg. If you need help choosing between channels, DM Meg and you can discuss it together.",
+        text: ":pencil: We have three private channels — Senior+, Mid-level, Early-career — for peer-to-peer conversation to support and nurture conversations specific to your career level. If you’d like join one, then reach out to Meg. If you need help choosing between channels, send a DM Meg and you can discuss it together.",
       },
     },
     {
