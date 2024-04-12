@@ -147,7 +147,30 @@ function welcome({ event }) {
   };
 }
 
+function newMember({ event }) {
+  const SLACK_ADMIN_CHANNEL =
+    process.env.TEST_SLACK_ADMIN_CHANNEL || process.env.SLACK_ADMIN_CHANNEL;
+
+  return {
+    link_names: true,
+    unfurl_links: false,
+    unfurl_media: false,
+    channel: SLACK_ADMIN_CHANNEL,
+    text: `New member joined: @${event.user.name}`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*New member joined:* \n @${event.user.name}`,
+        },
+      },
+    ],
+  };
+}
+
 module.exports = {
   welcome,
   appHome,
+  newMember,
 };
