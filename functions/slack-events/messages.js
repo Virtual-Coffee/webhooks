@@ -90,6 +90,13 @@ function getWelcomeBlocks(user) {
       type: 'section',
       text: {
         type: 'mrkdwn',
+        text: ":speaking_head_in_silouhette: We have three private channels — Senior+, Mid-level, Early-career — for peer-to-peer conversation to support and nurture conversations specific to your career level. If you’d like join one then reach out to Meg. If you need help choosing between channels, DM Meg and you can discuss it together.",
+      },
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
         text: ':question: #help-and-pairing is the space for asking questions about any and all tech related topics. But if you have a general question, we have a really welcoming community, so feel free to throw it in the channel that looks best.',
       },
     },
