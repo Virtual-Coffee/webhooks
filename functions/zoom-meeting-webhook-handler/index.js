@@ -14,7 +14,10 @@ const ZOOM_AUTH =
 
 const handler = async function (event, context) {
   try {
-    if (event.headers.authorization !== ZOOM_AUTH) {
+    if (
+      event.headers.authorization !== ZOOM_AUTH ||
+      event.headers['x-zm-signature'] !== ZOOM_AUTH
+    ) {
       console.log('Unauthorized', event);
       return {
         statusCode: 401,
@@ -24,16 +27,16 @@ const handler = async function (event, context) {
 
     const request = JSON.parse(event.body);
 
-    console.log(request);
-
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
 
     const room = rooms.find(
       (room) => room.ZoomMeetingId === request.payload.object.id
     );
-    console.log('request');
+    console.log('incoming request');
+    console.log('request payload');
     console.log(request.payload.object);
-    console.log(room);
+    console.log('request event');
+    console.log(request.event);
 
     if (room) {
       const Airtable = require('airtable');

@@ -67,7 +67,7 @@ async function updateMeetingStatus(room, timestamp) {
     ],
   };
 
-  console.log(JSON.stringify(message));
+  // console.log(JSON.stringify(message));
 
   const result = timestamp
     ? await updateMessage({ ...message, ts: timestamp })
