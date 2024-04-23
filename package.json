@@ -7,7 +7,7 @@
   "author": "Dan Ott <dan@dtott.com>",
   "license": "MIT",
   "engines": {
-    "node": "^14.18"
+    "node": "^20.12"
   },
   "dependencies": {
     "@netlify/functions": "^1.2.0",
