@@ -15,31 +15,44 @@ const ZOOM_SECRET =
   process.env.TEST_ZOOM_WEBHOOK_SECRET_TOKEN ||
   process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
 
+const ZOOM_AUTH =
+  process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
+
 const handler = async function (event, context) {
   try {
-    const message = `v0:${event.headers['x-zm-request-timestamp']}:${event.body}`;
+    /**
+     * verification. zoom will either send an authorization header or a x-zm-signature header
+     */
 
-    const hashForVerify = crypto
-      .createHmac('sha256', ZOOM_SECRET)
-      .update(message)
-      .digest('hex');
+    let authorized = false;
 
-    const signature = `v0=${hashForVerify}`;
+    if (event.headers['x-zm-signature']) {
+      const message = `v0:${event.headers['x-zm-request-timestamp']}:${event.body}`;
 
-    console.log('headers');
-    console.log(event.headers);
-    console.log(
-      event.headers.get ? event.headers.get('x-zm-signature') : 'no headers.get'
-    );
+      const hashForVerify = crypto
+        .createHmac('sha256', ZOOM_SECRET)
+        .update(message)
+        .digest('hex');
 
-    console.log('message');
-    console.log(message);
-    console.log('signature');
-    console.log(signature);
-    console.log('x-zm-signature');
-    console.log(event.headers['x-zm-signature']);
+      const signature = `v0=${hashForVerify}`;
 
-    if (event.headers['x-zm-signature'] !== signature) {
+      console.log('message');
+      console.log(message);
+      console.log('signature');
+      console.log(signature);
+      console.log('x-zm-signature');
+      console.log(event.headers['x-zm-signature']);
+
+      if (event.headers['x-zm-signature'] === signature) {
+        authorized = true;
+      }
+    } else {
+      if (event.headers.authorization === ZOOM_AUTH) {
+        authorized = true;
+      }
+    }
+
+    if (!authorized) {
       console.log('Unauthorized', event);
       return {
         statusCode: 401,
