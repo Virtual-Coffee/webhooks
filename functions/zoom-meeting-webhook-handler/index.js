@@ -26,6 +26,10 @@ const handler = async function (event, context) {
 
     const signature = `v0=${hashForVerify}`;
 
+    console.log('headers');
+    console.log(headers);
+    console.log(headers.get ? headers.get('x-zm-signature') : 'no headers.get');
+
     console.log('message');
     console.log(message);
     console.log('signature');
