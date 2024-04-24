@@ -22,7 +22,7 @@ const handler = async function (event, context) {
     }:${JSON.stringify(event.body)}`;
 
     const hashForVerify = crypto
-      .createHmac('sha256', ZOOM_WEBHOOK_SECRET_TOKEN)
+      .createHmac('sha256', ZOOM_SECRET)
       .update(message)
       .digest('hex');
 
