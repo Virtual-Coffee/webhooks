@@ -15,9 +15,10 @@ const ZOOM_AUTH =
 const handler = async function (event, context) {
   try {
     if (
-      event.headers.authorization !== ZOOM_AUTH
-      // ||
-      // event.headers['x-zm-signature'] !== ZOOM_AUTH
+      !(
+        event.headers.authorization === ZOOM_AUTH ||
+        event.headers['x-zm-signature'] === ZOOM_AUTH
+      )
     ) {
       console.log('Unauthorized', event);
       return {
