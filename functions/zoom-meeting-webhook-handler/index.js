@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+const crypto = require('crypto');
+
 const { updateMeetingStatus, updateMeetingAttendence } = require('./slack');
 
 const rooms = require('../../data/rooms.json');
@@ -9,17 +11,24 @@ const EVENT_MEETING_ENDED = 'meeting.ended';
 const EVENT_PARTICIPANT_JOINED = 'meeting.participant_joined';
 const EVENT_PARTICIPANT_LEFT = 'meeting.participant_left';
 
-const ZOOM_AUTH =
-  process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
+const ZOOM_SECRET =
+  process.env.TEST_ZOOM_WEBHOOK_SECRET_TOKEN ||
+  process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
 
 const handler = async function (event, context) {
   try {
-    if (
-      !(
-        event.headers.authorization === ZOOM_AUTH ||
-        event.headers['x-zm-signature'] === ZOOM_AUTH
-      )
-    ) {
+    const message = `v0:${
+      event.headers['x-zm-request-timestamp']
+    }:${JSON.stringify(event.body)}`;
+
+    const hashForVerify = crypto
+      .createHmac('sha256', ZOOM_WEBHOOK_SECRET_TOKEN)
+      .update(message)
+      .digest('hex');
+
+    const signature = `v0=${hashForVerify}`;
+
+    if (request.headers['x-zm-signature'] !== signature) {
       console.log('Unauthorized', event);
       return {
         statusCode: 401,
@@ -28,6 +37,22 @@ const handler = async function (event, context) {
     }
 
     const request = JSON.parse(event.body);
+
+    console.log(request);
+
+    if (request.event == 'endpoint.url_validation') {
+      const hashForValidate = crypto
+        .createHmac('sha256', ZOOM_SECRET)
+        .update(request.payload.plainToken)
+        .digest('hex');
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          plainToken: request.payload.plainToken,
+          encryptedToken: hashForValidate,
+        }),
+      };
+    }
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
 
