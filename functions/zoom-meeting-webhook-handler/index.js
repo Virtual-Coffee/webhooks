@@ -28,7 +28,7 @@ const handler = async function (event, context) {
 
     const signature = `v0=${hashForVerify}`;
 
-    if (request.headers['x-zm-signature'] !== signature) {
+    if (event.headers['x-zm-signature'] !== signature) {
       console.log('Unauthorized', event);
       return {
         statusCode: 401,
