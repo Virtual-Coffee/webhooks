@@ -38,8 +38,6 @@ const handler = async function (event, context) {
 
     const request = JSON.parse(event.body);
 
-    console.log(request);
-
     if (request.event == 'endpoint.url_validation') {
       const hashForValidate = crypto
         .createHmac('sha256', ZOOM_SECRET)
