@@ -21,7 +21,7 @@ async function findRoomInstance(room, base, instanceId) {
   let count = 0;
   while (count < 5 && !roomInstance) {
     count++;
-    await sleep(1000 * count);
+    await sleep(400 * count);
     roomInstance = await tryFind();
   }
 
