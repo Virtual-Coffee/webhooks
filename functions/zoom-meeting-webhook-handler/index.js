@@ -17,9 +17,7 @@ const ZOOM_SECRET =
 
 const handler = async function (event, context) {
   try {
-    const message = `v0:${
-      event.headers['x-zm-request-timestamp']
-    }:${JSON.stringify(event.body)}`;
+    const message = `v0:${event.headers['x-zm-request-timestamp']}:${event.body}`;
 
     const hashForVerify = crypto
       .createHmac('sha256', ZOOM_SECRET)
@@ -27,6 +25,13 @@ const handler = async function (event, context) {
       .digest('hex');
 
     const signature = `v0=${hashForVerify}`;
+
+    console.log('message');
+    console.log(message);
+    console.log('signature');
+    console.log(signature);
+    console.log('x-zm-signature');
+    console.log(event.headers['x-zm-signature']);
 
     if (event.headers['x-zm-signature'] !== signature) {
       console.log('Unauthorized', event);
