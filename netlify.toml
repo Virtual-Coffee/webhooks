@@ -26,3 +26,8 @@
   from = "/event-reminders"
   to = "/.netlify/functions/event-reminders-background"
   status = 200
+
+[[redirects]]
+  from = "/handle-participant-joined-background"
+  to = "/.netlify/functions/handle-participant-joined-background"
+  status = 200

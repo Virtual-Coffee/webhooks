@@ -96,22 +96,15 @@ const handler = async function (event, context) {
       switch (request.event) {
         case EVENT_PARTICIPANT_JOINED:
         case EVENT_PARTICIPANT_LEFT:
-          let roomInstance = await findRoomInstance(
-            room,
-            base,
-            request.payload.object.uuid
-          );
+          console.log('CALLING handle-participant-joined-background')
 
-          if (roomInstance) {
-            // create room event record
-            console.log(`found room instance ${roomInstance.getId()}`);
+          APP_HOST = 'https://4990a465--capable-gecko-a354d1.netlify.live'
+          response = await fetch(`${APP_HOST}/handle-participant-joined-background`, {
+            method: 'POST',
+            body: event.body,
+          });
 
-            const updatedMeeting = await updateMeetingAttendence(
-              room,
-              roomInstance.get('slack_thread_timestamp'),
-              request
-            );
-          }
+          console.log('EXITING IMMEDIATELY FROM zoom-meeting-webhook-handler')
 
           break;
 
