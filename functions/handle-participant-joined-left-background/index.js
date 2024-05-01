@@ -1,22 +1,8 @@
 require('dotenv').config();
 
-const crypto = require('crypto');
-
-const { updateMeetingStatus, updateMeetingAttendence } = require('../zoom-meeting-webhook-handler/slack.js');
+const { updateMeetingAttendence } = require('../zoom-meeting-webhook-handler/slack.js');
 
 const rooms = require('../../data/rooms.json');
-
-const EVENT_MEETING_STARTED = 'meeting.started';
-const EVENT_MEETING_ENDED = 'meeting.ended';
-const EVENT_PARTICIPANT_JOINED = 'meeting.participant_joined';
-const EVENT_PARTICIPANT_LEFT = 'meeting.participant_left';
-
-const ZOOM_SECRET =
-  process.env.TEST_ZOOM_WEBHOOK_SECRET_TOKEN ||
-  process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
-
-const ZOOM_AUTH =
-  process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
 
 const handler = async function (event, context) {
   try {
