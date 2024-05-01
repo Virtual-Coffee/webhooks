@@ -18,6 +18,8 @@ const ZOOM_SECRET =
 const ZOOM_AUTH =
   process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
 
+const APP_HOST = process.env.TEST_APP_HOST || process.env.APP_HOST;
+
 const handler = async function (event, context) {
   try {
     /**
@@ -98,7 +100,6 @@ const handler = async function (event, context) {
         case EVENT_PARTICIPANT_LEFT:
           console.log('CALLING handle-participant-joined-background')
 
-          APP_HOST = 'https://4990a465--capable-gecko-a354d1.netlify.live'
           response = await fetch(`${APP_HOST}/handle-participant-joined-background`, {
             method: 'POST',
             body: event.body,
