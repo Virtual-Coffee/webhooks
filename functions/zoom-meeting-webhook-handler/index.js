@@ -98,9 +98,9 @@ const handler = async function (event, context) {
       switch (request.event) {
         case EVENT_PARTICIPANT_JOINED:
         case EVENT_PARTICIPANT_LEFT:
-          console.log('CALLING handle-participant-joined-background')
+          console.log('CALLING handle-participant-joined-left-background')
 
-          response = await fetch(`${APP_HOST}/handle-participant-joined-background`, {
+          response = await fetch(`${APP_HOST}/handle-participant-joined-left-background`, {
             method: 'POST',
             body: event.body,
           });

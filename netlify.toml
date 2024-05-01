@@ -28,6 +28,6 @@
   status = 200
 
 [[redirects]]
-  from = "/handle-participant-joined-background"
-  to = "/.netlify/functions/handle-participant-joined-background"
+  from = "/handle-participant-joined-left-background"
+  to = "/.netlify/functions/handle-participant-joined-left-background"
   status = 200

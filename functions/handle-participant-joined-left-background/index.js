@@ -8,7 +8,7 @@ const handler = async function (event, context) {
   try {
     const request = JSON.parse(event.body);
 
-    console.log('PRINTING REQUEST FROM handle-participant-joined-background')
+    console.log('PRINTING REQUEST FROM handle-participant-joined-left-background')
     console.log(JSON.stringify(request, null, 2))
 
     // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
