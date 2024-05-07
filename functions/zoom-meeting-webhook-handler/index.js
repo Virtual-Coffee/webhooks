@@ -105,6 +105,10 @@ const handler = async function (event, context) {
             body: event.body,
           });
 
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+          }
+
           console.log('EXITING IMMEDIATELY FROM zoom-meeting-webhook-handler')
 
           break;
