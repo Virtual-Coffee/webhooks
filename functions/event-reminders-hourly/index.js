@@ -51,7 +51,7 @@ function createEventsQuery(calendars) {
 `;
 }
 
-const handler = async function (event, context) {
+const handler = async function (handlerEvent, handlerContext) {
   const graphQLClient = new GraphQLClient(`${process.env.CMS_URL}/api`, {
     headers: {
       Authorization: `bearer ${process.env.CMS_TOKEN}`,
@@ -89,90 +89,98 @@ const handler = async function (event, context) {
       });
 
       if (filteredList.length) {
-        const hourlyMessages = filteredList.map((event) => {
+        const hourlyMessages = filteredList.flatMap((event) => {
           const eventDate = DateTime.fromISO(event.startDateLocalized);
 
-          const message = {
-            channel:
-              event.eventSlackAnnouncementsChannelId ||
-              DEFAULT_SLACK_EVENT_CHANNEL,
-            text: `Starting soon: ${event.title}: ${eventDate.toFormat(
-              'EEEE, fff'
-            )}`,
-            unfurl_links: false,
-            unfurl_media: false,
-            blocks: [
-              {
-                type: 'header',
-                text: {
-                  type: 'plain_text',
-                  text: '⏰ Starting Soon:',
-                  emoji: true,
-                },
-              },
-            ],
-          };
-
-          const titleBlock = {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `*${
-                event.title
-              }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                'EEEE, fff'
-              )}>`,
-            },
-          };
-
-          if (
-            event.eventJoinLink &&
-            event.eventJoinLink.substring(0, 4) === 'http'
-          ) {
-            titleBlock.accessory = {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: 'Join Event',
-                emoji: true,
-              },
-              value: `join_event_${event.id}`,
-              url: event.eventJoinLink,
-              action_id: 'button-join-event',
-            };
+          const announcementsChannels = [DEFAULT_SLACK_EVENT_CHANNEL];
+          if (event.eventSlackAnnouncementsChannelId && event.eventSlackAnnouncementsChannelId !== DEFAULT_SLACK_EVENT_CHANNEL) {
+            announcementsChannels.push(event.eventSlackAnnouncementsChannelId);
           }
 
-          message.blocks.push(titleBlock);
+          const createMessage = (channel) => {
+            const message = {
+              channel: channel,
+              text: `Starting soon: ${event.title}: ${eventDate.toFormat(
+                'EEEE, fff'
+              )}`,
+              unfurl_links: false,
+              unfurl_media: false,
+              blocks: [
+                {
+                  type: 'header',
+                  text: {
+                    type: 'plain_text',
+                    text: '⏰ Starting Soon:',
+                    emoji: true,
+                  },
+                },
+              ],
+            };
 
-          if (
-            event.eventJoinLink &&
-            event.eventJoinLink.substring(0, 4) !== 'http'
-          ) {
-            message.blocks.push({
+            const titleBlock = {
               type: 'section',
               text: {
                 type: 'mrkdwn',
-                text: `*Location:* ${event.eventJoinLink}`,
+                text: `*${
+                  event.title
+                }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                  'EEEE, fff'
+                )}>`,
               },
-            });
-          }
+            };
 
-          message.blocks.push(
-            {
-              type: 'context',
-              elements: [
-                {
-                  type: 'mrkdwn',
-                  text: slackify(event.eventCalendarDescription),
+            if (
+              event.eventJoinLink &&
+              event.eventJoinLink.substring(0, 4) === 'http'
+            ) {
+              titleBlock.accessory = {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Join Event',
+                  emoji: true,
                 },
-              ],
-            },
-            {
-              type: 'divider',
+                value: `join_event_${event.id}`,
+                url: event.eventJoinLink,
+                action_id: 'button-join-event',
+              };
             }
-          );
 
-          return message;
+            message.blocks.push(titleBlock);
+
+            if (
+              event.eventJoinLink &&
+              event.eventJoinLink.substring(0, 4) !== 'http'
+            ) {
+              message.blocks.push({
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*Location:* ${event.eventJoinLink}`,
+                },
+              });
+            }
+
+            message.blocks.push(
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: slackify(event.eventCalendarDescription),
+                  },
+                ],
+              },
+              {
+                type: 'divider',
+              }
+            );
+
+            return message;
+          };
+
+          const messages = announcementsChannels.map(createMessage);
+          return messages;
         });
 
         const hourlyAdminMessage = {
@@ -227,6 +235,11 @@ const handler = async function (event, context) {
                 };
               }
 
+              const channels = [DEFAULT_SLACK_EVENT_CHANNEL];
+              if (event.eventSlackAnnouncementsChannelId && event.eventSlackAnnouncementsChannelId !== DEFAULT_SLACK_EVENT_CHANNEL) {
+                channels.push(event.eventSlackAnnouncementsChannelId);
+              }
+
               return [
                 ...list,
                 titleBlock,
@@ -252,10 +265,9 @@ const handler = async function (event, context) {
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `*Announcement posted to:* <#${
-                      event.eventSlackAnnouncementsChannelId ||
-                      DEFAULT_SLACK_EVENT_CHANNEL
-                    }>`,
+                    text:
+                      `*Announcement posted to:* ` +
+                      channels.map((channel) => `<#${channel}>`).join(', '),
                   },
                 },
                 {
