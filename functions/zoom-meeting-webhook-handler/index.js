@@ -1,193 +1,144 @@
 require('dotenv').config();
 
-const crypto = require('crypto');
+const { WebClient } = require("@slack/web-api");
 
-const { updateMeetingStatus, updateMeetingAttendence } = require('./slack');
+const SLACK_COWORKING_CHANNEL_ID = process.env.SLACK_COWORKING_CHANNEL_ID;
+const SLACK_COWORKING_CHANNEL_NAME = process.env.SLACK_COWORKING_CHANNEL_NAME;
 
-const rooms = require('../../data/rooms.json');
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
-const EVENT_MEETING_STARTED = 'meeting.started';
-const EVENT_MEETING_ENDED = 'meeting.ended';
-const EVENT_PARTICIPANT_JOINED = 'meeting.participant_joined';
-const EVENT_PARTICIPANT_LEFT = 'meeting.participant_left';
+const ZOOM_COWORKING_JOIN_URL = process.env.ZOOM_COWORKING_JOIN_URL;
+const ZOOM_DESKTOP_COWORKING_APP_JOIN_URL = process.env.ZOOM_DESKTOP_COWORKING_APP_JOIN_URL;
 
-const ZOOM_SECRET =
-  process.env.TEST_ZOOM_WEBHOOK_SECRET_TOKEN ||
-  process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
+const slack = new WebClient(SLACK_BOT_TOKEN);
 
-const ZOOM_AUTH =
-  process.env.TEST_ZOOM_WEBHOOK_AUTH || process.env.ZOOM_WEBHOOK_AUTH;
 
-const handler = async function (event, context) {
-  try {
-    /**
-     * verification. zoom will either send an authorization header or a x-zm-signature header
-     */
+function parseBody(event) {
+  let body = event.body || "";
+  if (event.isBase64Encoded) body = Buffer.from(body, "base64").toString("utf8");
+  const ct = (event.headers?.["content-type"] || event.headers?.["Content-Type"] || "").toLowerCase();
 
-    let authorized = false;
-
-    if (event.headers['x-zm-signature']) {
-      const message = `v0:${event.headers['x-zm-request-timestamp']}:${event.body}`;
-
-      const hashForVerify = crypto
-        .createHmac('sha256', ZOOM_SECRET)
-        .update(message)
-        .digest('hex');
-
-      const signature = `v0=${hashForVerify}`;
-
-      console.log('message');
-      console.log(message);
-      console.log('signature');
-      console.log(signature);
-      console.log('x-zm-signature');
-      console.log(event.headers['x-zm-signature']);
-
-      if (event.headers['x-zm-signature'] === signature) {
-        authorized = true;
-      }
-    } else {
-      if (event.headers.authorization === ZOOM_AUTH) {
-        authorized = true;
-      }
-    }
-
-    if (!authorized) {
-      console.log('Unauthorized', event);
-      return {
-        statusCode: 401,
-        body: '',
-      };
-    }
-
-    const request = JSON.parse(event.body);
-
-    if (request.event == 'endpoint.url_validation') {
-      const hashForValidate = crypto
-        .createHmac('sha256', ZOOM_SECRET)
-        .update(request.payload.plainToken)
-        .digest('hex');
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          plainToken: request.payload.plainToken,
-          encryptedToken: hashForValidate,
-        }),
-      };
-    }
-
-    // check our meeting ID. The meeting ID never changes, but the uuid is different for each instance
-
-    const room = rooms.find(
-      (room) => room.ZoomMeetingId === request.payload.object.id
-    );
-    console.log('incoming request');
-    console.log('request payload');
-    console.log(request.payload.object);
-    console.log('request event');
-    console.log(request.event);
-
-    if (room) {
-      const Airtable = require('airtable');
-      const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE);
-
-      const { findRoomInstance } = require('./airtable');
-
-      switch (request.event) {
-        case EVENT_PARTICIPANT_JOINED:
-        case EVENT_PARTICIPANT_LEFT:
-          let roomInstance = await findRoomInstance(
-            room,
-            base,
-            request.payload.object.uuid
-          );
-
-          if (roomInstance) {
-            // create room event record
-            console.log(`found room instance ${roomInstance.getId()}`);
-
-            const updatedMeeting = await updateMeetingAttendence(
-              room,
-              roomInstance.get('slack_thread_timestamp'),
-              request
-            );
-          }
-
-          break;
-
-        case EVENT_MEETING_STARTED:
-          // post message to Slack and get result
-          console.log('posting update');
-          const result = await updateMeetingStatus(room);
-          console.log('done posting update');
-
-          // create new room instance
-          const created = await base('room_instances').create({
-            instance_uuid: request.payload.object.uuid,
-            slack_thread_timestamp: result.ts,
-            start_time: request.payload.object.start_time,
-            room_record: [room.record_id],
-          });
-
-          if (!created) {
-            throw new Error('no record created');
-          }
-
-          console.log(`room_event created: ${created.getId()}`);
-
-          break;
-
-        case EVENT_MEETING_ENDED:
-          let roomInstanceEnd = await findRoomInstance(
-            room,
-            base,
-            request.payload.object.uuid
-          );
-
-          if (roomInstanceEnd) {
-            const slackedEnd = await updateMeetingStatus(
-              room,
-              roomInstanceEnd.get('slack_thread_timestamp')
-            );
-
-            // update room instance
-            //
-            const updated = await base('room_instances').update(
-              roomInstanceEnd.getId(),
-              {
-                end_time: request.payload.object.end_time,
-              }
-            );
-
-            if (!updated) {
-              throw new Error('no record updated');
-            }
-
-            console.log(`room_event updated: ${updated.getId()}`);
-          }
-
-          break;
-
-        default:
-          break;
-      }
-    } else {
-      console.log('meeting ID is not co-working meeting');
-    }
-
-    return {
-      statusCode: 200,
-      body: '',
-    };
-  } catch (error) {
-    // output to netlify function log
-    console.log(error);
-    return {
-      statusCode: 500,
-      // Could be a custom message or object i.e. JSON.stringify(err)
-      body: JSON.stringify({ msg: error.message }),
-    };
+  if (ct.includes("application/json")) return body ? JSON.parse(body) : {};
+  if (ct.includes("application/x-www-form-urlencoded")) {
+    return Object.fromEntries(new URLSearchParams(body));
   }
+  // try JSON, else return raw string
+  try { return body ? JSON.parse(body) : {}; } catch { return { raw: body }; }
+}
+
+
+async function handleStartCall() {
+  // Create a Slack call and post a call block
+  const created = await slack.calls.add({
+    title: "co-working-room",
+    external_unique_id: "0xDEADBEEF",
+    join_url: ZOOM_COWORKING_JOIN_URL,
+    desktop_app_join_url: ZOOM_DESKTOP_COWORKING_APP_JOIN_URL,
+  });
+
+  const call_id = created?.call?.id;
+  await slack.chat.postMessage({
+    channel: SLACK_COWORKING_CHANNEL_NAME,
+    blocks: [{ type: "call", call_id }],
+  });
+
+  return call_id;
+}
+
+
+function handleValidation(zoomEvent) {
+  const plainToken = zoomEvent?.payload?.plainToken || "";
+  const encryptedToken = crypto
+    .createHmac("sha256", ZOOM_WEBHOOK_SECRET_TOKEN)
+    .update(plainToken)
+    .digest("hex");
+  return { plainToken, encryptedToken };
+}
+
+
+async function getCallIdFromChannel() {
+  const resp = await slack.conversations.history({ channel: SLACK_COWORKING_CHANNEL_ID, limit: 1 });
+  const msg = resp?.messages?.[0];
+  const block0 = msg?.blocks?.[0];
+  // Slack “call” block may expose call_id directly or inside the block payload
+  if (block0?.call_id) return block0.call_id;
+  if (block0?.call?.v1?.id) return block0.call.v1.id;
+  throw new Error("Could not determine current call_id from channel history.");
+}
+
+
+async function addParticipant(user) {
+  const call_id = await getCallIdFromChannel();
+  await slack.calls.participants.add({ id: call_id, users: [user] });
+}
+
+
+async function removeParticipant(user) {
+  const call_id = await getCallIdFromChannel();
+  await slack.calls.participants.remove({ id: call_id, users: [user] });
+}
+
+
+const ZOOM_USER_NAME_TO_SLACK_ID = {
+  "Eddie B": "U04CYG7MEKB",
+  "Edward Banner": "U05DEUP5P62",
 };
 
-module.exports = { handler };
+
+function toSlackUser(zoomEvent) {
+  const zoomName = zoomEvent?.payload?.object?.participant?.user_name;
+  if (zoomName && ZOOM_USER_NAME_TO_SLACK_ID[zoomName]) {
+    return { slack_id: ZOOM_USER_NAME_TO_SLACK_ID[zoomName] };
+  }
+  return {
+    external_id: "zoom_user_id",
+    display_name: zoomName || "Unknown Zoom User",
+  };
+}
+
+
+function isSlashCommand(event) {
+  const body = parseBody(event);
+  return typeof body?.command === "string" && body.command.startsWith("/");
+}
+
+
+async function getActiveParticipants() {
+  const resp = await slack.conversations.history({ channel: SLACK_COWORKING_CHANNEL_ID, limit: 1 });
+  return resp?.messages?.[0]?.blocks?.[0]?.call?.v1?.active_participants ?? [];
+}
+
+
+exports.handler = async function(event) {
+  if (isSlashCommand(event)) {
+    const call_id = await handleStartCall();
+    return { statusCode: 200, body: JSON.stringify(call_id) }
+  }
+
+  // Zoom webhooks
+  const zoomEvent = parseBody(event);
+  const zoomEventName = zoomEvent?.event;
+  if (zoomEventName === "endpoint.url_validation") {
+    return json(200, handleValidation(zoomEvent));
+  }
+
+  else if (zoomEventName === "meeting.participant_joined") {
+    await addParticipant(toSlackUser(zoomEvent));
+    return { statusCode: 204 };
+  }
+
+  else if (zoomEventName === "meeting.participant_left") {
+    await removeParticipant(toSlackUser(zoomEvent));
+    const active = await getActiveParticipants();
+    if (active.length === 0) {
+      const call_id = await getCallIdFromChannel();
+      await slack.calls.end({ id: call_id });
+    }
+    return { statusCode: 204 };
+  }
+
+  return {
+    statusCode: 200
+  };
+};
+
