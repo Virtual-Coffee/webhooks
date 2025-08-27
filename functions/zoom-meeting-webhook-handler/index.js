@@ -67,23 +67,25 @@ async function getCallIdFromChannel() {
 }
 
 
-async function addParticipant(user) {
+async function addParticipantToCall(zoomEvent) {
+  const slackUser = toSlackUser(zoomEvent);
   const call_id = await getCallIdFromChannel();
-  await slack.calls.participants.add({ id: call_id, users: [user] });
+  await slack.calls.participants.add({ id: call_id, users: [slackUser] });
 }
 
 
-async function removeParticipant(user) {
+async function removeParticipantFromCall(zoomEvent) {
+  const slackUser = toSlackUser(zoomEvent);
   const call_id = await getCallIdFromChannel();
-  await slack.calls.participants.remove({ id: call_id, users: [user] });
+  await slack.calls.participants.remove({ id: call_id, users: [slackUser] });
 }
 
 
 function toSlackUser(zoomEvent) {
-  const zoomName = zoomEvent?.payload?.object?.participant?.user_name;
+  const zoomDisplayName = zoomEvent?.payload?.object?.participant?.user_name;
   return {
-    external_id: zoomName,
-    display_name: zoomName,
+    external_id: zoomDisplayName,
+    display_name: zoomDisplayName,
   };
 }
 
@@ -94,36 +96,65 @@ function isSlashCommand(event) {
 }
 
 
+function getSlashCommand(event) {
+  const body = parseBody(event);
+  return typeof body?.command === "string" && body.command;
+}
+
+
+function getSlashText(event) {
+  const body = parseBody(event);
+  return typeof body?.text === "string" && body.text;
+}
+
+
 async function getActiveParticipants() {
   const resp = await slack.conversations.history({ channel: SLACK_COWORKING_CHANNEL_ID, limit: 1 });
   return resp?.messages?.[0]?.blocks?.[0]?.call?.v1?.active_participants ?? [];
 }
 
 
+async function endCall() {
+  const call_id = await getCallIdFromChannel();
+  await slack.calls.end({ id: call_id });
+}
+
+
 exports.handler = async function(event) {
   if (isSlashCommand(event)) {
-    const call_id = await handleStartCall();
-    return { statusCode: 200, body: JSON.stringify(call_id) }
+    const slashCommand = getSlashCommand(event);
+    if (slashCommand === "/co-working-room") {
+      const slashText = getSlashText(event);
+      if (slashText == "end") {
+        await endCall();
+      }
+      const call_id = await handleStartCall();
+      return { statusCode: 200, body: JSON.stringify(call_id) }
+    }
   }
 
   // Zoom webhooks
   const zoomEvent = parseBody(event);
   const zoomEventName = zoomEvent?.event;
+
   if (zoomEventName === "endpoint.url_validation") {
-    return json(200, handleValidation(zoomEvent));
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(handleValidation(zoomEvent))
+    }
   }
 
   else if (zoomEventName === "meeting.participant_joined") {
-    await addParticipant(toSlackUser(zoomEvent));
+    await addParticipantToCall(zoomEvent);
     return { statusCode: 204 };
   }
 
   else if (zoomEventName === "meeting.participant_left") {
-    await removeParticipant(toSlackUser(zoomEvent));
+    await removeParticipantFromCall(zoomEvent);
     const active = await getActiveParticipants();
     if (active.length === 0) {
-      const call_id = await getCallIdFromChannel();
-      await slack.calls.end({ id: call_id });
+      await endCall();
     }
     return { statusCode: 204 };
   }
