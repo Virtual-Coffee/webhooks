@@ -79,20 +79,11 @@ async function removeParticipant(user) {
 }
 
 
-const ZOOM_USER_NAME_TO_SLACK_ID = {
-  "Eddie B": "U04CYG7MEKB",
-  "Edward Banner": "U05DEUP5P62",
-};
-
-
 function toSlackUser(zoomEvent) {
   const zoomName = zoomEvent?.payload?.object?.participant?.user_name;
-  if (zoomName && ZOOM_USER_NAME_TO_SLACK_ID[zoomName]) {
-    return { slack_id: ZOOM_USER_NAME_TO_SLACK_ID[zoomName] };
-  }
   return {
-    external_id: "zoom_user_id",
-    display_name: zoomName || "Unknown Zoom User",
+    external_id: zoomName,
+    display_name: zoomName,
   };
 }
 
