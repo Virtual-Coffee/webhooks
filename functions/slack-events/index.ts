@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import { welcome, appHome } from './messages.js';
-import { postMessage, publishView } from '../../util/slack.js';
+import { welcome, appHome } from './messages';
+import { postMessage, publishView } from '../../util/slack';
 
 const SLACK_SIGNING_SECRET =
   process.env.TEST_SLACK_SIGNING_SECRET || process.env.SLACK_SIGNING_SECRET;

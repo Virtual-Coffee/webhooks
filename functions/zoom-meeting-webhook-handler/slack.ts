@@ -1,5 +1,5 @@
-import { postMessage, updateMessage } from '../../util/slack.js';
-import type { Room } from '../../types/room.js';
+import { postMessage, updateMessage } from '../../util/slack';
+import type { Room } from '../../types/room';
 
 interface ZoomWebhookRequest {
   event: string;

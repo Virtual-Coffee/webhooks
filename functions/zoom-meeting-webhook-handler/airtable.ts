@@ -1,4 +1,4 @@
-import type { Room } from '../../types/room.js';
+import type { Room } from '../../types/room';
 import type Airtable from 'airtable';
 
 type AirtableBase = ReturnType<InstanceType<typeof Airtable>['base']>;

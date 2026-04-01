@@ -1,8 +1,8 @@
 import { GraphQLClient, gql } from 'graphql-request';
 import { DateTime } from 'luxon';
-import { postMessage } from '../../util/slack.js';
+import { postMessage } from '../../util/slack';
 import type { Config } from '@netlify/functions';
-import type { CalendarsResponse, EventsResponse } from '../../types/cms.js';
+import type { CalendarsResponse, EventsResponse } from '../../types/cms';
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||

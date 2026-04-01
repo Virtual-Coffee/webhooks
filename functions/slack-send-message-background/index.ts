@@ -1,4 +1,4 @@
-import { postMessage, publishView } from '../../util/slack.js';
+import { postMessage, publishView } from '../../util/slack';
 
 interface BackgroundRequest {
   key: string;
