@@ -1,8 +1,11 @@
-require('dotenv').config();
-const Airtable = require('airtable');
-const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE);
-var fs = require('fs');
-const path = require('path');
+import 'dotenv/config';
+import Airtable from 'airtable';
+import { writeFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE!);
 
 async function main() {
   console.log('Building rooms');
@@ -13,9 +16,9 @@ async function main() {
     record_id: record.id,
   }));
 
-  fs.writeFileSync(
-    path.resolve(__dirname, '..', 'data', 'rooms.json'),
-    JSON.stringify(rooms, null, 2)
+  writeFileSync(
+    resolve(__dirname, '..', 'data', 'rooms.json'),
+    JSON.stringify(rooms, null, 2),
   );
 
   console.log(`Done building ${rooms.length} rooms`);
