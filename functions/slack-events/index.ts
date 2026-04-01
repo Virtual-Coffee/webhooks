@@ -1,49 +1,11 @@
-import crypto from 'node:crypto';
 import { welcome, appHome } from './messages';
 import { postMessage, publishView } from '../../util/slack';
 import { requireEnv } from '../../util/env';
+import { verifySlackRequest } from '../../util/verify';
 
 const SLACK_SIGNING_SECRET =
   process.env.TEST_SLACK_SIGNING_SECRET ||
   requireEnv('SLACK_SIGNING_SECRET');
-
-function verify(rawBody: string, headers: Headers) {
-  const slackSignature = headers.get('x-slack-signature');
-  const timestamp = headers.get('x-slack-request-timestamp');
-  // convert current time from milliseconds to seconds
-  const time = Math.floor(new Date().getTime() / 1000);
-  if (!timestamp || Math.abs(time - Number(timestamp)) > 300) {
-    return {
-      valid: false as const,
-      reason: 'Ignore this request.',
-    };
-  }
-
-  const verificationString = `v0:${timestamp}:${rawBody}`;
-  const mySignature =
-    'v0=' +
-    crypto
-      .createHmac('sha256', SLACK_SIGNING_SECRET)
-      .update(verificationString, 'utf8')
-      .digest('hex');
-
-  if (
-    slackSignature &&
-    crypto.timingSafeEqual(
-      Buffer.from(mySignature, 'utf8'),
-      Buffer.from(slackSignature, 'utf8'),
-    )
-  ) {
-    return {
-      valid: true as const,
-    };
-  } else {
-    return {
-      valid: false as const,
-      reason: 'Verification Failed.',
-    };
-  }
-}
 
 const EVENT_TEAM_JOIN = 'team_join';
 const EVENT_APP_HOME_OPENED = 'app_home_opened';
@@ -61,7 +23,7 @@ export default async (req: Request) => {
         }
         break;
       case 'event_callback': {
-        const isValid = verify(rawBody, req.headers);
+        const isValid = verifySlackRequest(rawBody, req.headers, SLACK_SIGNING_SECRET);
 
         if (!isValid.valid) {
           console.log('Failed validation: ', isValid.reason);
