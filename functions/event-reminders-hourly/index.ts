@@ -2,16 +2,17 @@ import { GraphQLClient, gql } from 'graphql-request';
 import { DateTime } from 'luxon';
 import { postMessage } from '../../util/slack';
 import slackify from 'slackify-html';
+import { requireEnv } from '../../util/env';
 import type { Config } from '@netlify/functions';
 import type { CalendarsResponse, EventsResponse } from '../../types/cms';
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
-  process.env.SLACK_ANNOUNCEMENTS_CHANNEL;
+  requireEnv('SLACK_ANNOUNCEMENTS_CHANNEL');
 
 const SLACK_EVENT_ADMIN_CHANNEL =
   process.env.TEST_SLACK_EVENT_ADMIN_CHANNEL ||
-  process.env.SLACK_EVENT_ADMIN_CHANNEL;
+  requireEnv('SLACK_EVENT_ADMIN_CHANNEL');
 
 const DEFAULT_SLACK_EVENT_CHANNEL = 'C017WAKN883';
 
@@ -164,8 +165,8 @@ export default async (req: Request) => {
           );
 
           return {
-            channel: (event.eventSlackAnnouncementsChannelId ||
-              DEFAULT_SLACK_EVENT_CHANNEL)!,
+            channel: event.eventSlackAnnouncementsChannelId ||
+              DEFAULT_SLACK_EVENT_CHANNEL,
             text: `Starting soon: ${event.title}: ${eventDate.toFormat(
               'EEEE, fff',
             )}`,
@@ -176,7 +177,7 @@ export default async (req: Request) => {
         });
 
         const hourlyAdminMessage = {
-          channel: SLACK_EVENT_ADMIN_CHANNEL!,
+          channel: SLACK_EVENT_ADMIN_CHANNEL,
           text: `Starting soon: ${filteredList
             .map((event) => {
               return `${event.title}: ${DateTime.fromISO(

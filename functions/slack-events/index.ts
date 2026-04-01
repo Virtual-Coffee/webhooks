@@ -1,9 +1,11 @@
 import crypto from 'node:crypto';
 import { welcome, appHome } from './messages';
 import { postMessage, publishView } from '../../util/slack';
+import { requireEnv } from '../../util/env';
 
 const SLACK_SIGNING_SECRET =
-  process.env.TEST_SLACK_SIGNING_SECRET || process.env.SLACK_SIGNING_SECRET;
+  process.env.TEST_SLACK_SIGNING_SECRET ||
+  requireEnv('SLACK_SIGNING_SECRET');
 
 function verify(rawBody: string, headers: Headers) {
   const slackSignature = headers.get('x-slack-signature');
@@ -21,7 +23,7 @@ function verify(rawBody: string, headers: Headers) {
   const mySignature =
     'v0=' +
     crypto
-      .createHmac('sha256', SLACK_SIGNING_SECRET!)
+      .createHmac('sha256', SLACK_SIGNING_SECRET)
       .update(verificationString, 'utf8')
       .digest('hex');
 

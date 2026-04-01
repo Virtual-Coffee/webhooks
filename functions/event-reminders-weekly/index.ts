@@ -1,12 +1,13 @@
 import { GraphQLClient, gql } from 'graphql-request';
 import { DateTime } from 'luxon';
 import { postMessage } from '../../util/slack';
+import { requireEnv } from '../../util/env';
 import type { Config } from '@netlify/functions';
 import type { CalendarsResponse, EventsResponse } from '../../types/cms';
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
-  process.env.SLACK_ANNOUNCEMENTS_CHANNEL;
+  requireEnv('SLACK_ANNOUNCEMENTS_CHANNEL');
 
 const DEFAULT_SLACK_EVENT_CHANNEL = 'C017WAKN883';
 
@@ -79,7 +80,7 @@ export default async (req: Request) => {
     const eventsList = eventsResponse.solspace_calendar.events;
     if (eventsList && eventsList.length) {
       const weeklyMessage = {
-        channel: SLACK_ANNOUNCEMENTS_CHANNEL!,
+        channel: SLACK_ANNOUNCEMENTS_CHANNEL,
         text: `This weeks events are: ${eventsList
           .map((event) => {
             return `${event.title}: ${DateTime.fromISO(
