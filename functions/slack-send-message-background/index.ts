@@ -1,4 +1,6 @@
 import { postMessage, publishView } from '../../util/slack';
+import { requireEnv } from '../../util/env';
+import { verifyBackgroundRequest } from '../../util/verify';
 
 interface BackgroundRequest {
   key: string;
@@ -9,10 +11,7 @@ interface BackgroundRequest {
 export default async (req: Request) => {
   const request = (await req.json()) as BackgroundRequest;
 
-  if (request.key !== process.env.WEBHOOKS_VERIFICATION) {
-    console.log('Not Authorized');
-    throw new Error('Not Authorized');
-  }
+  verifyBackgroundRequest(request.key, requireEnv('WEBHOOKS_VERIFICATION'));
 
   let result: { ok?: boolean; ts?: string; message?: { username?: string } } | undefined;
 

@@ -67,3 +67,16 @@ export function verifyZoomSignature(
   const message = `v0:${zmTimestamp}:${rawBody}`;
   return verifyHmacSignature(secret, message, zmSignature);
 }
+
+/**
+ * Verifies a background function request by comparing the provided key
+ * against the expected verification key.
+ */
+export function verifyBackgroundRequest(
+  key: string,
+  expected: string,
+): void {
+  if (key !== expected) {
+    throw new Error('Not Authorized');
+  }
+}
