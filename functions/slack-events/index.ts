@@ -1,4 +1,4 @@
-import { welcome, appHome } from './messages';
+import * as messages from './messages';
 import { postMessage, publishView } from '../../util/slack';
 import { requireEnv } from '../../util/env';
 import { verifySlackRequest } from '../../util/verify';
@@ -37,7 +37,7 @@ export default async (req: Request) => {
             console.log('Posting to slack-background for team join');
 
             result = await postMessage(
-              welcome({ event: request.event }),
+              messages.welcome({ event: request.event }),
               {
                 background: true,
               },
@@ -49,7 +49,7 @@ export default async (req: Request) => {
             console.log('Posting to slack-background for app home');
 
             result = await publishView(
-              appHome({ event: request.event }),
+              messages.appHome({ event: request.event }),
               {
                 background: true,
               },
