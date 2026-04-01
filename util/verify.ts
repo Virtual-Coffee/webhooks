@@ -69,6 +69,14 @@ export function verifyZoomSignature(
 }
 
 /**
+ * Computes an HMAC-SHA256 hex digest. Used for Zoom's endpoint URL
+ * validation challenge response.
+ */
+export function hmacSha256Hex(secret: string, data: string): string {
+  return crypto.createHmac('sha256', secret).update(data).digest('hex');
+}
+
+/**
  * Verifies a background function request by comparing the provided key
  * against the expected verification key.
  */
