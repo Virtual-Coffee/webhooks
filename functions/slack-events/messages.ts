@@ -1,4 +1,17 @@
-function getWelcomeBlocks(user) {
+interface SlackUser {
+  id: string;
+  name: string;
+}
+
+interface TeamJoinEvent {
+  user: SlackUser;
+}
+
+interface AppHomeOpenedEvent {
+  user: string;
+}
+
+function getWelcomeBlocks(user?: SlackUser) {
   return [
     {
       type: 'section',
@@ -126,17 +139,17 @@ function getWelcomeBlocks(user) {
   ];
 }
 
-function appHome({ event }) {
+export function appHome({ event }: { event: AppHomeOpenedEvent }) {
   return {
     user_id: event.user,
     view: {
-      type: 'home',
+      type: 'home' as const,
       blocks: getWelcomeBlocks(),
     },
   };
 }
 
-function welcome({ event }) {
+export function welcome({ event }: { event: TeamJoinEvent }) {
   return {
     link_names: true,
     unfurl_links: false,
@@ -146,8 +159,3 @@ function welcome({ event }) {
     blocks: getWelcomeBlocks(event.user),
   };
 }
-
-module.exports = {
-  welcome,
-  appHome,
-};
