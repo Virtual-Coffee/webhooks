@@ -1,8 +1,8 @@
-require('dotenv').config();
-const { GraphQLClient, gql } = require('graphql-request');
-const { DateTime } = require('luxon');
-const { postMessage } = require('../../util/slack');
-const { schedule } = require('@netlify/functions');
+import { GraphQLClient, gql } from 'graphql-request';
+import { DateTime } from 'luxon';
+import { postMessage } from '../../util/slack.js';
+import type { Config } from '@netlify/functions';
+import type { CalendarsResponse, EventsResponse } from '../../types/cms.js';
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
@@ -20,7 +20,7 @@ const calendarsQuery = gql`
   }
 `;
 
-function createEventsQuery(calendars) {
+function createEventsQuery(calendars: CalendarsResponse) {
   return gql`
 	query getEvents($rangeStart: String!, $rangeEnd: String!) {
 		solspace_calendar {
@@ -46,7 +46,7 @@ function createEventsQuery(calendars) {
 `;
 }
 
-const handler = async function (event, context) {
+export default async (req: Request) => {
   const graphQLClient = new GraphQLClient(`${process.env.CMS_URL}/api`, {
     headers: {
       Authorization: `bearer ${process.env.CMS_TOKEN}`,
@@ -65,24 +65,25 @@ const handler = async function (event, context) {
   console.log('Fetching events', rangeStart, rangeEnd);
 
   try {
-    const calendarsResponse = await graphQLClient.request(calendarsQuery);
+    const calendarsResponse =
+      await graphQLClient.request<CalendarsResponse>(calendarsQuery);
 
-    const eventsResponse = await graphQLClient.request(
+    const eventsResponse = await graphQLClient.request<EventsResponse>(
       createEventsQuery(calendarsResponse),
       {
         rangeStart,
         rangeEnd,
-      }
+      },
     );
 
     const eventsList = eventsResponse.solspace_calendar.events;
     if (eventsList && eventsList.length) {
       const weeklyMessage = {
-        channel: SLACK_ANNOUNCEMENTS_CHANNEL,
+        channel: SLACK_ANNOUNCEMENTS_CHANNEL!,
         text: `This weeks events are: ${eventsList
           .map((event) => {
             return `${event.title}: ${DateTime.fromISO(
-              event.startDateLocalized
+              event.startDateLocalized,
             ).toFormat('EEEE, fff')}`;
           })
           .join(', ')}`,
@@ -90,9 +91,9 @@ const handler = async function (event, context) {
         unfurl_media: false,
         blocks: [
           {
-            type: 'header',
+            type: 'header' as const,
             text: {
-              type: 'plain_text',
+              type: 'plain_text' as const,
               text: "📆 This Week's Events Are:",
               emoji: true,
             },
@@ -101,11 +102,11 @@ const handler = async function (event, context) {
             const eventDate = DateTime.fromISO(event.startDateLocalized);
             // TODO - colate these by date
             return {
-              type: 'section',
+              type: 'section' as const,
               text: {
-                type: 'mrkdwn',
+                type: 'mrkdwn' as const,
                 text: `*<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                  'EEEE, fff'
+                  'EEEE, fff',
                 )}>* in <#${
                   event.eventSlackAnnouncementsChannelId ||
                   DEFAULT_SLACK_EVENT_CHANNEL
@@ -114,22 +115,22 @@ const handler = async function (event, context) {
             };
           }),
           {
-            type: 'context',
+            type: 'context' as const,
             elements: [
               {
-                type: 'mrkdwn',
+                type: 'mrkdwn' as const,
                 text: `ℹ️ Links to join will be posted in the specified channel about 10 minutes before the event starts.`,
               },
             ],
           },
           {
-            type: 'divider',
+            type: 'divider' as const,
           },
           {
-            type: 'context',
+            type: 'context' as const,
             elements: [
               {
-                type: 'mrkdwn',
+                type: 'mrkdwn' as const,
                 text: `See details and more events at <https://virtualcoffee.io/events|VirtualCoffee.IO>!`,
               },
             ],
@@ -139,15 +140,13 @@ const handler = async function (event, context) {
 
       await postMessage(weeklyMessage);
     }
-    return {
-      statusCode: 200,
-    };
+    return new Response(null, { status: 200 });
   } catch (e) {
     console.error(e);
-    return {
-      statusCode: 500,
-    };
+    return new Response(null, { status: 500 });
   }
 };
 
-module.exports.handler = schedule('0 12 * * 1', handler);
+export const config: Config = {
+  schedule: '0 12 * * 1',
+};
