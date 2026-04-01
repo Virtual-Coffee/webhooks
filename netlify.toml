@@ -1,6 +1,8 @@
 [build]
-  functions = "functions"
-  command = "yarn run build"
+  command = "pnpm run build"
+
+[functions]
+  directory = "functions"
 
 [[redirects]]
   from = "/zoom-meeting-webhook-handler"
