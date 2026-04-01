@@ -1,45 +1,43 @@
-require('dotenv').config();
-
-const crypto = require('crypto');
-const messages = require('./messages');
-
-const { postMessage, publishView } = require('../../util/slack');
+import crypto from 'node:crypto';
+import { welcome, appHome } from './messages.js';
+import { postMessage, publishView } from '../../util/slack.js';
 
 const SLACK_SIGNING_SECRET =
   process.env.TEST_SLACK_SIGNING_SECRET || process.env.SLACK_SIGNING_SECRET;
 
-function verify(event) {
-  const slackSignature = event.headers['x-slack-signature'];
-  const timestamp = event.headers['x-slack-request-timestamp'];
+function verify(rawBody: string, headers: Headers) {
+  const slackSignature = headers.get('x-slack-signature');
+  const timestamp = headers.get('x-slack-request-timestamp');
   // convert current time from milliseconds to seconds
   const time = Math.floor(new Date().getTime() / 1000);
-  if (Math.abs(time - timestamp) > 300) {
+  if (!timestamp || Math.abs(time - Number(timestamp)) > 300) {
     return {
-      valid: false,
+      valid: false as const,
       reason: 'Ignore this request.',
     };
   }
 
-  const verificationString = `v0:${timestamp}:${event.body}`;
+  const verificationString = `v0:${timestamp}:${rawBody}`;
   const mySignature =
     'v0=' +
     crypto
-      .createHmac('sha256', SLACK_SIGNING_SECRET)
+      .createHmac('sha256', SLACK_SIGNING_SECRET!)
       .update(verificationString, 'utf8')
       .digest('hex');
 
   if (
+    slackSignature &&
     crypto.timingSafeEqual(
       Buffer.from(mySignature, 'utf8'),
-      Buffer.from(slackSignature, 'utf8')
+      Buffer.from(slackSignature, 'utf8'),
     )
   ) {
     return {
-      valid: true,
+      valid: true as const,
     };
   } else {
     return {
-      valid: false,
+      valid: false as const,
       reason: 'Verification Failed.',
     };
   }
@@ -48,44 +46,37 @@ function verify(event) {
 const EVENT_TEAM_JOIN = 'team_join';
 const EVENT_APP_HOME_OPENED = 'app_home_opened';
 
-const handler = async function (event, context) {
+export default async (req: Request) => {
   try {
-    const request = JSON.parse(event.body);
+    const rawBody = await req.text();
+    const request = JSON.parse(rawBody);
 
     switch (request.type) {
       case 'url_verification':
         if (request.challenge) {
           console.log('Valid url_verification');
-          return {
-            statusCode: 200,
-            body: request.challenge,
-            // body: JSON.stringify({ identity, user, msg: data.value }),
-          };
+          return new Response(request.challenge, { status: 200 });
         }
         break;
-      case 'event_callback':
-        const isValid = verify(event);
+      case 'event_callback': {
+        const isValid = verify(rawBody, req.headers);
 
         if (!isValid.valid) {
           console.log('Failed validation: ', isValid.reason);
-          return {
-            statusCode: 400,
-            body: isValid.reason,
-          };
+          return new Response(isValid.reason, { status: 400 });
         }
-        // v0
 
-        let result = null;
+        let result: { ok?: boolean } | null = null;
 
         switch (request.event.type) {
           case EVENT_TEAM_JOIN:
             console.log('Posting to slack-background for team join');
 
             result = await postMessage(
-              messages.welcome({ event: request.event }),
+              welcome({ event: request.event }),
               {
                 background: true,
-              }
+              },
             );
 
             break;
@@ -94,10 +85,10 @@ const handler = async function (event, context) {
             console.log('Posting to slack-background for app home');
 
             result = await publishView(
-              messages.appHome({ event: request.event }),
+              appHome({ event: request.event }),
               {
                 background: true,
-              }
+              },
             );
             break;
 
@@ -109,43 +100,30 @@ const handler = async function (event, context) {
           if (result.ok) {
             console.log(`Successfully posted to slack-background`);
 
-            return {
-              statusCode: 200,
-              body: JSON.stringify({ success: true }),
-            };
+            return new Response(JSON.stringify({ success: true }), {
+              status: 200,
+            });
           } else {
             console.log(`Error posting to slack-background`);
-
             console.log(result);
 
-            return {
-              statusCode: 400,
-              body: JSON.stringify({ success: false }),
-            };
+            return new Response(JSON.stringify({ success: false }), {
+              status: 400,
+            });
           }
         }
-
+        break;
+      }
       default:
         break;
     }
 
     console.log('Unknown action.');
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ message: 'Unknown action.' }),
-    };
+    return new Response(JSON.stringify({ message: 'Unknown action.' }), {
+      status: 400,
+    });
   } catch (error) {
     console.log(error);
-    return {
-      statusCode: 500,
-      body: '',
-    };
+    return new Response('', { status: 500 });
   }
-
-  // return {
-  //   statusCode: 200,
-  //   body: '',
-  // };
 };
-
-module.exports = { handler };

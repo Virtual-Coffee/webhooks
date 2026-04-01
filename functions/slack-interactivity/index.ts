@@ -1,8 +1,3 @@
-const handler = async function (event, context) {
-  return {
-    statusCode: 200,
-    body: '',
-  };
+export default async (req: Request) => {
+  return new Response('', { status: 200 });
 };
-
-module.exports = { handler };
