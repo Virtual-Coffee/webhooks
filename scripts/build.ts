@@ -5,7 +5,12 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE!);
+
+if (!process.env.AIRTABLE_COWORKING_BASE) {
+  throw new Error('AIRTABLE_COWORKING_BASE environment variable is required');
+}
+
+const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE);
 
 async function main() {
   console.log('Building rooms');
