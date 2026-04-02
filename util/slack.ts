@@ -1,6 +1,5 @@
-require('dotenv').config();
-const fetch = require('node-fetch');
-const { WebClient } = require('@slack/web-api');
+import { WebClient } from '@slack/web-api';
+import type { ChatPostMessageArguments, ChatUpdateArguments, ViewsPublishArguments } from '@slack/web-api';
 
 const SLACK_BOT_TOKEN =
   process.env.TEST_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
@@ -8,7 +7,7 @@ const APP_HOST = process.env.TEST_APP_HOST || process.env.APP_HOST;
 
 const web = new WebClient(SLACK_BOT_TOKEN);
 
-async function postBackgroundAction(json = {}) {
+async function postBackgroundAction(json: Record<string, unknown> = {}) {
   return await fetch(`${APP_HOST}/slack-send-message`, {
     method: 'POST',
     body: JSON.stringify({
@@ -18,7 +17,10 @@ async function postBackgroundAction(json = {}) {
   });
 }
 
-async function postMessage(message, { background = false } = {}) {
+export async function postMessage(
+  message: ChatPostMessageArguments,
+  { background = false } = {},
+) {
   return background
     ? await postBackgroundAction({
         message,
@@ -27,7 +29,10 @@ async function postMessage(message, { background = false } = {}) {
     : await web.chat.postMessage(message);
 }
 
-async function updateMessage(message, { background = false } = {}) {
+export async function updateMessage(
+  message: ChatUpdateArguments,
+  { background = false } = {},
+) {
   return background
     ? await postBackgroundAction({
         message,
@@ -36,7 +41,10 @@ async function updateMessage(message, { background = false } = {}) {
     : await web.chat.update(message);
 }
 
-async function publishView(message, { background = false } = {}) {
+export async function publishView(
+  message: ViewsPublishArguments,
+  { background = false } = {},
+) {
   return background
     ? await postBackgroundAction({
         message,
@@ -44,5 +52,3 @@ async function publishView(message, { background = false } = {}) {
       })
     : await web.views.publish(message);
 }
-
-module.exports = { postMessage, updateMessage, publishView };

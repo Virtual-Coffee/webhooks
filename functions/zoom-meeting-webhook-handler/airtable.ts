@@ -1,6 +1,15 @@
+import type { Room } from '../../types/room';
+import type Airtable from 'airtable';
+
+type AirtableBase = ReturnType<InstanceType<typeof Airtable>['base']>;
+
 // returns a roomInstance record, or undefined.
 // Will retry 5 times, pausing 1 second between tries.
-async function findRoomInstance(room, base, instanceId) {
+export async function findRoomInstance(
+  room: Room,
+  base: AirtableBase,
+  instanceId: string,
+) {
   async function tryFind() {
     const resultArray = await base('room_instances')
       .select({
@@ -13,7 +22,7 @@ async function findRoomInstance(room, base, instanceId) {
 
     return resultArray[0];
   }
-  function sleep(ms) {
+  function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
@@ -31,5 +40,3 @@ async function findRoomInstance(room, base, instanceId) {
 
   return roomInstance;
 }
-
-module.exports = { findRoomInstance };

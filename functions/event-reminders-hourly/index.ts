@@ -1,17 +1,18 @@
-require('dotenv').config();
-const { GraphQLClient, gql } = require('graphql-request');
-const { DateTime } = require('luxon');
-const { postMessage } = require('../../util/slack');
-var slackify = require('slackify-html');
-const { schedule } = require('@netlify/functions');
+import { GraphQLClient, gql } from 'graphql-request';
+import { DateTime } from 'luxon';
+import { postMessage } from '../../util/slack';
+import slackify from 'slackify-html';
+import { requireEnv } from '../../util/env';
+import type { Config } from '@netlify/functions';
+import type { CalendarsResponse, EventsResponse } from '../../types/cms';
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
-  process.env.SLACK_ANNOUNCEMENTS_CHANNEL;
+  requireEnv('SLACK_ANNOUNCEMENTS_CHANNEL');
 
 const SLACK_EVENT_ADMIN_CHANNEL =
   process.env.TEST_SLACK_EVENT_ADMIN_CHANNEL ||
-  process.env.SLACK_EVENT_ADMIN_CHANNEL;
+  requireEnv('SLACK_EVENT_ADMIN_CHANNEL');
 
 const DEFAULT_SLACK_EVENT_CHANNEL = 'C017WAKN883';
 
@@ -25,7 +26,7 @@ const calendarsQuery = gql`
   }
 `;
 
-function createEventsQuery(calendars) {
+function createEventsQuery(calendars: CalendarsResponse) {
   return gql`
 	query getEvents($rangeStart: String!, $rangeEnd: String!) {
 		solspace_calendar {
@@ -51,7 +52,7 @@ function createEventsQuery(calendars) {
 `;
 }
 
-const handler = async function (event, context) {
+export default async (req: Request) => {
   const graphQLClient = new GraphQLClient(`${process.env.CMS_URL}/api`, {
     headers: {
       Authorization: `bearer ${process.env.CMS_TOKEN}`,
@@ -70,14 +71,15 @@ const handler = async function (event, context) {
   console.log('Fetching events', rangeStart, rangeEnd);
 
   try {
-    const calendarsResponse = await graphQLClient.request(calendarsQuery);
+    const calendarsResponse =
+      await graphQLClient.request<CalendarsResponse>(calendarsQuery);
 
-    const eventsResponse = await graphQLClient.request(
+    const eventsResponse = await graphQLClient.request<EventsResponse>(
       createEventsQuery(calendarsResponse),
       {
         rangeStart,
         rangeEnd,
-      }
+      },
     );
 
     const eventsList = eventsResponse.solspace_calendar.events;
@@ -92,35 +94,25 @@ const handler = async function (event, context) {
         const hourlyMessages = filteredList.map((event) => {
           const eventDate = DateTime.fromISO(event.startDateLocalized);
 
-          const message = {
-            channel:
-              event.eventSlackAnnouncementsChannelId ||
-              DEFAULT_SLACK_EVENT_CHANNEL,
-            text: `Starting soon: ${event.title}: ${eventDate.toFormat(
-              'EEEE, fff'
-            )}`,
-            unfurl_links: false,
-            unfurl_media: false,
-            blocks: [
-              {
-                type: 'header',
-                text: {
-                  type: 'plain_text',
-                  text: '⏰ Starting Soon:',
-                  emoji: true,
-                },
+          const blocks: Record<string, unknown>[] = [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: '⏰ Starting Soon:',
+                emoji: true,
               },
-            ],
-          };
+            },
+          ];
 
-          const titleBlock = {
+          const titleBlock: Record<string, unknown> = {
             type: 'section',
             text: {
               type: 'mrkdwn',
               text: `*${
                 event.title
               }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                'EEEE, fff'
+                'EEEE, fff',
               )}>`,
             },
           };
@@ -142,13 +134,13 @@ const handler = async function (event, context) {
             };
           }
 
-          message.blocks.push(titleBlock);
+          blocks.push(titleBlock);
 
           if (
             event.eventJoinLink &&
             event.eventJoinLink.substring(0, 4) !== 'http'
           ) {
-            message.blocks.push({
+            blocks.push({
               type: 'section',
               text: {
                 type: 'mrkdwn',
@@ -157,7 +149,7 @@ const handler = async function (event, context) {
             });
           }
 
-          message.blocks.push(
+          blocks.push(
             {
               type: 'context',
               elements: [
@@ -169,10 +161,19 @@ const handler = async function (event, context) {
             },
             {
               type: 'divider',
-            }
+            },
           );
 
-          return message;
+          return {
+            channel: event.eventSlackAnnouncementsChannelId ||
+              DEFAULT_SLACK_EVENT_CHANNEL,
+            text: `Starting soon: ${event.title}: ${eventDate.toFormat(
+              'EEEE, fff',
+            )}`,
+            unfurl_links: false,
+            unfurl_media: false,
+            blocks,
+          };
         });
 
         const hourlyAdminMessage = {
@@ -180,7 +181,7 @@ const handler = async function (event, context) {
           text: `Starting soon: ${filteredList
             .map((event) => {
               return `${event.title}: ${DateTime.fromISO(
-                event.startDateLocalized
+                event.startDateLocalized,
               ).toFormat('EEEE, fff')}`;
             })
             .join(', ')}`,
@@ -188,101 +189,101 @@ const handler = async function (event, context) {
           unfurl_media: false,
           blocks: [
             {
-              type: 'header',
+              type: 'header' as const,
               text: {
-                type: 'plain_text',
+                type: 'plain_text' as const,
                 text: '⏰ Starting Soon:',
                 emoji: true,
               },
             },
-            ...filteredList.reduce((list, event) => {
-              const eventDate = DateTime.fromISO(event.startDateLocalized);
+            ...filteredList.reduce<Record<string, unknown>[]>(
+              (list, event) => {
+                const eventDate = DateTime.fromISO(event.startDateLocalized);
 
-              const titleBlock = {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: `*${
-                    event.title
-                  }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                    'EEEE, fff'
-                  )}>`,
-                },
-              };
-
-              if (
-                event.eventJoinLink &&
-                event.eventJoinLink.substring(0, 4) === 'http'
-              ) {
-                titleBlock.accessory = {
-                  type: 'button',
+                const titleBlock: Record<string, unknown> = {
+                  type: 'section',
                   text: {
-                    type: 'plain_text',
-                    text: 'Join Event',
-                    emoji: true,
+                    type: 'mrkdwn',
+                    text: `*${
+                      event.title
+                    }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
+                      'EEEE, fff',
+                    )}>`,
                   },
-                  value: `join_event_${event.id}`,
-                  url: event.eventJoinLink,
-                  action_id: 'button-join-event',
                 };
-              }
 
-              return [
-                ...list,
-                titleBlock,
-                {
-                  type: 'section',
-                  text: {
-                    type: 'mrkdwn',
-                    text: `*Location:* ${event.eventJoinLink}`,
+                if (
+                  event.eventJoinLink &&
+                  event.eventJoinLink.substring(0, 4) === 'http'
+                ) {
+                  titleBlock.accessory = {
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Join Event',
+                      emoji: true,
+                    },
+                    value: `join_event_${event.id}`,
+                    url: event.eventJoinLink,
+                    action_id: 'button-join-event',
+                  };
+                }
+
+                return [
+                  ...list,
+                  titleBlock,
+                  {
+                    type: 'section',
+                    text: {
+                      type: 'mrkdwn',
+                      text: `*Location:* ${event.eventJoinLink}`,
+                    },
                   },
-                },
-                ...(event.eventZoomHostCode
-                  ? [
-                      {
-                        type: 'section',
-                        text: {
-                          type: 'mrkdwn',
-                          text: `*Host Code:* ${event.eventZoomHostCode}`,
+                  ...(event.eventZoomHostCode
+                    ? [
+                        {
+                          type: 'section',
+                          text: {
+                            type: 'mrkdwn',
+                            text: `*Host Code:* ${event.eventZoomHostCode}`,
+                          },
                         },
-                      },
-                    ]
-                  : []),
-                {
-                  type: 'section',
-                  text: {
-                    type: 'mrkdwn',
-                    text: `*Announcement posted to:* <#${
-                      event.eventSlackAnnouncementsChannelId ||
-                      DEFAULT_SLACK_EVENT_CHANNEL
-                    }>`,
+                      ]
+                    : []),
+                  {
+                    type: 'section',
+                    text: {
+                      type: 'mrkdwn',
+                      text: `*Announcement posted to:* <#${
+                        event.eventSlackAnnouncementsChannelId ||
+                        DEFAULT_SLACK_EVENT_CHANNEL
+                      }>`,
+                    },
                   },
-                },
-                {
-                  type: 'divider',
-                },
-              ];
-            }, []),
+                  {
+                    type: 'divider',
+                  },
+                ];
+              },
+              [],
+            ),
           ],
         };
 
         await postMessage(hourlyAdminMessage);
 
         await Promise.all(
-          hourlyMessages.map((message) => postMessage(message))
+          hourlyMessages.map((message) => postMessage(message)),
         );
-        // console.log(JSON.stringify(hourlyMessage, null, 2));
       }
     }
-    return {
-      statusCode: 200,
-    };
+    return new Response(null, { status: 200 });
   } catch (e) {
     console.error(e);
-    return {
-      statusCode: 500,
-    };
+    return new Response(null, { status: 500 });
   }
 };
 
-module.exports.handler = schedule('50 * * * *', handler);
+export const config: Config = {
+  schedule: '50 * * * *',
+};

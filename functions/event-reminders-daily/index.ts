@@ -1,13 +1,14 @@
-require('dotenv').config();
-const { GraphQLClient, gql } = require('graphql-request');
-const { DateTime } = require('luxon');
-const { postMessage } = require('../../util/slack');
-const { schedule } = require('@netlify/functions');
-var slackify = require('slackify-html');
+import { GraphQLClient, gql } from 'graphql-request';
+import { DateTime } from 'luxon';
+import { postMessage } from '../../util/slack';
+import slackify from 'slackify-html';
+import { requireEnv } from '../../util/env';
+import type { Config } from '@netlify/functions';
+import type { CalendarsResponse, EventsResponse } from '../../types/cms';
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
-  process.env.SLACK_ANNOUNCEMENTS_CHANNEL;
+  requireEnv('SLACK_ANNOUNCEMENTS_CHANNEL');
 
 const DEFAULT_SLACK_EVENT_CHANNEL = 'C017WAKN883';
 
@@ -21,7 +22,7 @@ const calendarsQuery = gql`
   }
 `;
 
-function createEventsQuery(calendars) {
+function createEventsQuery(calendars: CalendarsResponse) {
   return gql`
 	query getEvents($rangeStart: String!, $rangeEnd: String!) {
 		solspace_calendar {
@@ -47,7 +48,7 @@ function createEventsQuery(calendars) {
 `;
 }
 
-const handler = async function (event, context) {
+export default async (req: Request) => {
   const graphQLClient = new GraphQLClient(`${process.env.CMS_URL}/api`, {
     headers: {
       Authorization: `bearer ${process.env.CMS_TOKEN}`,
@@ -63,14 +64,15 @@ const handler = async function (event, context) {
   console.log('Fetching events', rangeStart, rangeEnd);
 
   try {
-    const calendarsResponse = await graphQLClient.request(calendarsQuery);
+    const calendarsResponse =
+      await graphQLClient.request<CalendarsResponse>(calendarsQuery);
 
-    const eventsResponse = await graphQLClient.request(
+    const eventsResponse = await graphQLClient.request<EventsResponse>(
       createEventsQuery(calendarsResponse),
       {
         rangeStart,
         rangeEnd,
-      }
+      },
     );
 
     const eventsList = eventsResponse.solspace_calendar.events;
@@ -86,7 +88,7 @@ const handler = async function (event, context) {
         text: `Today's events are: ${eventsList
           .map((event) => {
             return `${event.title}: ${DateTime.fromISO(
-              event.startDateLocalized
+              event.startDateLocalized,
             ).toFormat('EEEE, fff')}`;
           })
           .join(', ')}`,
@@ -94,14 +96,14 @@ const handler = async function (event, context) {
         unfurl_media: false,
         blocks: [
           {
-            type: 'header',
+            type: 'header' as const,
             text: {
-              type: 'plain_text',
+              type: 'plain_text' as const,
               text: "📆 Today's Events Are:",
               emoji: true,
             },
           },
-          ...eventsList.reduce((list, event) => {
+          ...eventsList.reduce<Record<string, unknown>[]>((list, event) => {
             const eventDate = DateTime.fromISO(event.startDateLocalized);
             return [
               ...list,
@@ -112,7 +114,7 @@ const handler = async function (event, context) {
                   text: `*${
                     event.title
                   }*\n<!date^${eventDate.toSeconds()}^{date_long_pretty} {time}|${eventDate.toFormat(
-                    'EEEE, fff'
+                    'EEEE, fff',
                   )}>`,
                 },
               },
@@ -148,15 +150,13 @@ const handler = async function (event, context) {
       await postMessage(dailyMessage);
     }
 
-    return {
-      statusCode: 200,
-    };
+    return new Response(null, { status: 200 });
   } catch (e) {
     console.error(e);
-    return {
-      statusCode: 500,
-    };
+    return new Response(null, { status: 500 });
   }
 };
 
-module.exports.handler = schedule('0 12 * * *', handler);
+export const config: Config = {
+  schedule: '0 12 * * *',
+};
