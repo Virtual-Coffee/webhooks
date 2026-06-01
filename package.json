@@ -17,7 +17,6 @@
     "graphql": "^16.6.0",
     "graphql-request": "^7.4.0",
     "luxon": "^3.0.3",
-    "node-fetch": "^2.6.1",
     "slackify-html": "^1.0.1"
   },
   "scripts": {

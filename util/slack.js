@@ -1,5 +1,5 @@
 require('dotenv').config();
-const fetch = require('node-fetch');
+
 const { WebClient } = require('@slack/web-api');
 
 const SLACK_BOT_TOKEN =
