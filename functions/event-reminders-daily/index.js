@@ -159,4 +159,7 @@ const handler = async function (event, context) {
   }
 };
 
-module.exports.handler = schedule('0 12 * * *', handler);
+// Cron disabled: reminders are moving to the new Cloudflare deployment.
+// Kept the schedule below for reference until the migration is complete.
+// module.exports.handler = schedule('0 12 * * *', handler);
+module.exports.handler = handler;
