@@ -88,6 +88,13 @@ const handler = async function (event, context) {
     console.log(request.event);
 
     if (room) {
+      // DISABLED ahead of Cloudflare coworking-bot migration — endpoint still
+      // validates Zoom webhooks but performs no Slack/Airtable actions.
+      // The block below is intentionally commented out (not removed) so it can
+      // be restored or referenced. See branch `disable-actions`.
+      console.log('co-working meeting — actions disabled');
+
+      /*
       const Airtable = require('airtable');
       const base = new Airtable().base(process.env.AIRTABLE_COWORKING_BASE);
 
@@ -171,6 +178,7 @@ const handler = async function (event, context) {
         default:
           break;
       }
+      */
     } else {
       console.log('meeting ID is not co-working meeting');
     }
