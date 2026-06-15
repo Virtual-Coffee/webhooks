@@ -3,6 +3,8 @@ const { GraphQLClient, gql } = require('graphql-request');
 const { DateTime } = require('luxon');
 const { postMessage } = require('../../util/slack');
 var slackify = require('slackify-html');
+// Cron disabled (see export below) — import kept commented for re-enabling.
+// const { schedule } = require('@netlify/functions');
 
 const SLACK_ANNOUNCEMENTS_CHANNEL =
   process.env.TEST_SLACK_ANNOUNCEMENTS_CHANNEL ||
@@ -286,6 +288,6 @@ const handler = async function (event, context) {
 
 // Cron disabled: reminders are moving to the new Cloudflare deployment.
 // Kept the schedule below for reference until the migration is complete.
-// To re-enable, restore `const { schedule } = require('@netlify/functions');` above.
+// To re-enable, uncomment the schedule import above and the line below.
 // module.exports.handler = schedule('50 * * * *', handler);
 module.exports.handler = handler;
