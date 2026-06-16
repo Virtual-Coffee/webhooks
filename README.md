@@ -2,6 +2,9 @@
 
 Repo/Netlify Functions for responding to various webhooks
 
+> [!important]
+> This repo will soon be retired. The webhooks in here have been replaced by a Cloudflare Worker located in the [vc-bots repo](https://github.com/Virtual-Coffee/vc-bots).
+
 ## `/event-reminders`
 
 A [Netlify background function](https://docs.netlify.com/functions/build-with-javascript/#background-function-format) for sending event reminders to our Slack via cronjob.
